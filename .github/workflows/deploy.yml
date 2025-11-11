@@ -1,0 +1,61 @@
+# .github/workflows/deploy.yml
+
+name: Build and Deploy to Custom Server (FTP)
+
+on:
+    # Dispara el workflow en cada push a la rama 'main'
+    push:
+        branches: ["main"]
+
+    # Permite la ejecución manual
+    workflow_dispatch:
+
+jobs:
+    build_and_deploy:
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout Repository
+              uses: actions/checkout@v4
+
+            # 1. Configurar Node.js (v20 recomendado para Astro)
+            - name: Set up Node.js
+              uses: actions/setup-node@v4
+              with:
+                  node-version: 20
+                  cache: "npm"
+
+            # 2. Instalar dependencias
+            - name: Install Dependencies
+              run: npm ci
+
+            # 3. Construir el proyecto Astro
+            # Esto genera los archivos finales en la carpeta 'dist'
+            - name: Build Astro Project
+              run: npm run build
+
+            # 4. Desplegar los archivos vía FTP al servidor
+            - name: Deploy to Custom Server via FTP
+              uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+              with:
+                  # Configuraciones de conexión con los Secrets
+                  server: ${{ secrets.SSH_HOST }}
+                  username: ${{ secrets.SSH_USER }}
+                  password: ${{ secrets.SSH_PASSWORD }}
+                  # Especificamos el puerto 21 para FTP
+                  port: 21
+
+                  # La carpeta local a subir
+                  local-dir: ./dist/
+
+                  # La carpeta remota: La 'raiz' de tu hosting.
+                  # **Si la raíz de tu web es '/public_html/' o similar, cámbialo.**
+                  server-dir: /
+
+                  # Configuraciones de despliegue
+                  state-name: .ftp-deploy-state
+                  log-level: verbose
+                  exclude: |
+                      .git*
+                      .git*/**
+                      .cache/**
