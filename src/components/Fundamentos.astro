@@ -13,34 +13,34 @@ const principios = [
     titulo: "Sujeción",
     descripcion:
       "Reconocemos la autoridad divina y el orden establecido por Dios, sometiendo nuestra voluntad a Su señorío para Su gloria.",
-    img: imgSujecion, // Ahora referenciamos la imagen importada
+    img: imgSujecion,
     alt: "Manos unidas en oración simbolizando sujeción a Dios",
   },
   {
     titulo: "Obediencia",
     descripcion:
       "No somos solo oidores, sino hacedores de la Palabra, respondiendo con fidelidad a los mandamientos de nuestro Señor.",
-    img: imgObediencia, // Ahora referenciamos la imagen importada
+    img: imgObediencia,
     alt: "Una persona leyendo la Biblia y escribiendo notas",
   },
   {
     titulo: "Lealtad",
     descripcion:
       "Mantenemos un compromiso inquebrantable con Cristo y Su evangelio, permaneciendo firmes como buenos soldados de Jesucristo.",
-    img: imgLealtad, // Ahora referenciamos la imagen importada
+    img: imgLealtad,
     alt: "Un grupo de personas unidas mirando hacia un horizonte iluminado",
   },
   {
     titulo: "Integridad",
     descripcion:
       "Buscamos ser aprobados delante de Dios, viviendo con rectitud y transparencia en todas nuestras sendas.",
-    img: imgIntegridad, // Ahora referenciamos la imagen importada
+    img: imgIntegridad,
     alt: "Primer plano de una pareja leyendo la Biblia juntos",
   },
 ];
 ---
 
-<section id="principios" class="py-24 bg-[#0c121e] relative">
+<section id="principios" class="py-24 bg-[#0c121e] relative overflow-hidden">
   <div class="container mx-auto px-6 relative z-10">
     <div class="w-full mb-16">
       <h2 class="text-[#D4AF37] font-bold tracking-widest text-sm uppercase mb-3">Pilares del Ministerio</h2>
@@ -66,12 +66,15 @@ const principios = [
       <div class="h-1 w-20 bg-[#D4AF37] mt-8"></div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+    <div id="contenedor-cartas" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {
-        principios.map((item) => (
-          <div class="group bg-[#101829] border border-white/5 rounded-2xl overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500 hover:-translate-y-2">
+        principios.map((item, index) => (
+          /* Clase 'carta-principio' para JS, estados iniciales de animación y retraso calculado */
+          <div
+            class="carta-principio group bg-[#101829] border border-white/5 rounded-2xl overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500 hover:-translate-y-2 opacity-0 translate-x-[-50px]"
+            style={`transition-delay: ${index * 150}ms;`}
+          >
             <div class="h-48 overflow-hidden relative">
-              {/* Reemplazamos <img> por <Image> de Astro */}
               <Image
                 src={item.img}
                 alt={item.alt}
@@ -105,3 +108,43 @@ const principios = [
     </div>
   </div>
 </section>
+
+<script>
+  const ejecutarAnimacion = () => {
+    const contenedor = document.getElementById("contenedor-cartas");
+    const cartas = document.querySelectorAll(".carta-principio");
+
+    if (!contenedor || cartas.length === 0) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            // Cuando el contenedor es visible, activamos la animación en cada carta
+            cartas.forEach((carta) => {
+              // Eliminamos las clases de estado inicial
+              carta.classList.remove("opacity-0", "translate-x-[-50px]");
+              // Añadimos las clases de estado final (visibles y en posición)
+              carta.classList.add("opacity-100", "translate-x-0");
+            });
+            // Dejamos de observar el contenedor una vez activada la animación
+            observer.unobserve(contenedor);
+          }
+        });
+      },
+      {
+        // Ajuste para activar la animación un poco antes de que sea totalmente visible
+        rootMargin: "0px 0px -100px 0px",
+        threshold: 0.1, // Se activa cuando al menos el 10% del contenedor es visible
+      },
+    );
+
+    observer.observe(contenedor);
+  };
+
+  // Ejecutar en la carga inicial
+  ejecutarAnimacion();
+
+  // Ejecutar en cada navegación (necesario para Astro con View Transitions activadas)
+  document.addEventListener("astro:after-swap", ejecutarAnimacion);
+</script>
