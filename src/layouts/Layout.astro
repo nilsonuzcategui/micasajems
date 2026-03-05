@@ -1,26 +1,82 @@
 ---
 import "../styles/global.css";
+
+interface Props {
+  title?: string;
+  description?: string;
+}
+
+const {
+  title = "JEMS - Iglesia Jesucristo es Mi Señor | Coro, Edo. Falcón",
+  description = "Comunidad cristiana en La Urbina, Coro. Obreros que usan bien la Palabra de Verdad. Te invitamos a nuestros estudios bíblicos y ministerios basados en 2 Timoteo 2:15.",
+} = Astro.props;
+
+const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://micasajems.com");
 ---
 
 <!doctype html>
-<html lang="en">
+<html lang="es" class="scroll-smooth">
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="generator" content={Astro.generator} />
-    <title>JEMS - Iglesia Jesucristo es mi Señor</title>
+
+    <title>{title}</title>
+    <meta name="description" content={description} />
+    <link rel="canonical" href={canonicalURL} />
+    <meta name="robots" content="index, follow" />
+
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content={Astro.url} />
+    <meta property="og:title" content={title} />
+    <meta property="og:description" content={description} />
+    <meta property="og:image" content="/og-image.jpg" />
+    <meta property="twitter:card" content="summary_large_image" />
+    <meta property="twitter:url" content={Astro.url} />
+    <meta property="twitter:title" content={title} />
+    <meta property="twitter:description" content={description} />
+    <meta property="twitter:image" content="/og-image.jpg" />
+
+    <meta name="geo.region" content="VE-I" />
+    <meta name="geo.placename" content="Santa Ana de Coro" />
+    <meta name="geo.position" content="11.4167;-69.6667" />
+    <meta name="ICBM" content="11.4167, -69.6667" />
+
+    <script type="application/ld+json">
+      {
+        "@context": "https://schema.org",
+        "@type": "Church",
+        "name": "Iglesia Jesucristo es Mi Señor (JEMS)",
+        "alternateName": "JEMS Coro",
+        "description": "Iglesia Cristiana en Coro dedicada al estudio profundo de las Escrituras.",
+        "url": "https://micasajems.com",
+        "logo": "https://micasajems.com/logo-iglesia.png",
+        "address": {
+          "@type": "PostalAddress",
+          "addressLocality": "Santa Ana de Coro",
+          "addressRegion": "Falcón",
+          "addressCountry": "VE",
+          "streetAddress": "La Urbina"
+        },
+        "geo": {
+          "@type": "GeoCoordinates",
+          "latitude": "11.4167",
+          "longitude": "-69.6667"
+        }
+      }
+    </script>
   </head>
-  <body>
-    <slot />
-  </body>
+  <body class="bg-[#101829] antialiased"> <slot /> </body>
 </html>
 
-<style>
-  html,
-  body {
-    margin: 0;
-    width: 100%;
-    height: 100%;
+<style is:global>
+  /* Para que el scroll suave funcione bien en todos los navegadores */
+  :root {
+    color-scheme: dark;
+  }
+  html {
+    font-family: system-ui, sans-serif;
+    background: #101829;
   }
 </style>
