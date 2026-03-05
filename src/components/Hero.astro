@@ -13,7 +13,15 @@ import videoHero from "../assets/videos/fondovideo1.mp4";
 
     <div class="absolute inset-0 bg-gradient-to-b from-[#101829]/40 via-transparent to-[#0c121e] z-20"></div>
 
-    <video autoplay muted loop playsinline class="w-full h-full object-cover">
+    <video
+      autoplay
+      muted
+      loop
+      playsinline
+      webkit-playsinline
+      preload="auto"
+      class="w-full h-full object-cover pointer-events-none"
+    >
       <source src={videoHero} type="video/mp4" />
       Tu navegador no soporta video.
     </video>
