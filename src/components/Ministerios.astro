@@ -7,6 +7,7 @@ const ministerios = [
     icono:
       "M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253",
     color: "from-amber-500/20 to-transparent",
+    link: "/pastoral",
   },
   {
     nombre: "Juvenil",
@@ -14,6 +15,7 @@ const ministerios = [
     icono:
       "M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z",
     color: "from-blue-500/10 to-transparent",
+    link: "/juvenil",
   },
   {
     nombre: "Ayuda Social",
@@ -21,6 +23,7 @@ const ministerios = [
     icono:
       "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
     color: "from-red-500/10 to-transparent",
+    link: "/ayuda-social",
   },
   {
     nombre: "Adoración",
@@ -28,6 +31,7 @@ const ministerios = [
     icono:
       "M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3",
     color: "from-purple-500/10 to-transparent",
+    link: "/ministerios/adoracion-y-alabanzas",
   },
   {
     nombre: "Intercesión",
@@ -36,6 +40,7 @@ const ministerios = [
     iconoSVG:
       "M12 21l-8.228-3.654A2 2 0 012.62 15.513V4.24a2 2 0 012.31-1.974l8.07 1.344 8.07-1.344a2 2 0 012.31 1.974v11.273a2 2 0 01-1.152 1.833L12 21z",
     color: "from-teal-500/10 to-transparent",
+    link: "/intercesion",
   },
 ];
 ---
@@ -83,7 +88,7 @@ const ministerios = [
             <p class="text-slate-400 leading-relaxed font-light mb-6">{m.descripcion}</p>
 
             <a
-              href="#"
+              href={m.link}
               class="inline-flex items-center text-sm font-semibold text-[#D4AF37] hover:gap-2 transition-all"
             >
               Saber más

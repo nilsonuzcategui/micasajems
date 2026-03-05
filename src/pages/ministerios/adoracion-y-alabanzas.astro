@@ -1,0 +1,176 @@
+---
+import { Image } from "astro:assets";
+import Footer from "../../components/Footer.astro";
+import Layout from "../../layouts/Layout.astro";
+
+// Importa tus imágenes aquí (ajusta las rutas según tus archivos)
+import fotoGrupal from "../../assets/images/bandaentera.png";
+import fotoLider from "../../assets/images/jonathan.png";
+import Ministerios from "../../components/Ministerios.astro";
+
+const miembrosBanda = [
+  { nombre: "Yohana Navarro", rol: "Voces / Dirección", bio: "Llamada a guiar al pueblo en adoración." },
+  { nombre: "Nilson Uzcátegui", rol: "Piano / Dirección", bio: "10 años sirviendo en el altar." },
+  { nombre: "Luigi • Roselyn", rol: "Directores", bio: "Corazón que late al ritmo del cielo." },
+  {
+    nombre: "Jesus • Anthony ",
+    rol: "Guitarra Eléctrica",
+    bio: "Apasionados por la música y las cuerdas.",
+  },
+  { nombre: "Reyber • Neomar", rol: "Bajistas", bio: "Perfeccionistas en el arte del bajo." },
+
+  {
+    nombre: "Kate • Daniela • Sariel",
+    rol: "Coros",
+    bio: "Mujeres con una búsqueda constante de excelencia en la adoración.",
+  },
+];
+---
+
+<Layout title="Adoración y Alabanza | JEMS">
+  <section class="relative pt-32 pb-20 overflow-hidden bg-[#0c121e]">
+    <div class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
+      <div class="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#D4AF37]/20 rounded-full blur-[150px]"></div>
+    </div>
+
+    <div class="container mx-auto px-6 relative z-10 text-center">
+      <h1 class="text-[#D4AF37] font-bold tracking-[0.3em] uppercase text-sm mb-4 animate-fade-in">
+        Ministerio de Música
+      </h1>
+      <p class="text-5xl md:text-7xl font-bold text-white mb-8 italic">
+        Adoración <span class="text-[#D4AF37] font-light">&</span> Alabanza
+      </p>
+      <blockquote
+        class="max-w-2xl mx-auto text-slate-400 italic text-lg leading-relaxed border-l-2 border-[#D4AF37]/30 pl-6"
+      >
+        "Dios es Espíritu; y los que le adoran, en espíritu y en verdad es necesario que adoren."
+        <span class="block text-[#D4AF37] mt-2 font-bold not-italic">— Juan 4:24</span>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="py-12 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="relative group rounded-3xl overflow-hidden border border-white/10 shadow-2xl shadow-[#D4AF37]/5">
+        <Image
+          src={fotoGrupal}
+          alt="Banda de Alabanza JEMS - Foto Grupal Completa"
+          class="w-full h-auto min-h-[400px] object-contain md:object-cover grayscale group-hover:grayscale-0 transition-all duration-1000 scale-100 group-hover:scale-105"
+        />
+
+        <div
+          class="absolute inset-0 bg-gradient-to-t from-[#0c121e] via-transparent to-[#0c121e]/20 opacity-80 group-hover:opacity-40 transition-opacity duration-700"
+        >
+        </div>
+
+        <div class="absolute bottom-0 left-0 w-full p-8 md:p-12 text-center md:text-left">
+          <p class="text-white text-xl md:text-3xl font-serif italic leading-tight drop-shadow-lg">
+            "Nuestra esencia no es el talento, <br class="hidden md:block" /> sino <span class="text-[#D4AF37]"
+              >Su presencia</span
+            >."
+          </p>
+        </div>
+      </div>
+
+      <p class="text-center text-slate-500 text-xs mt-4 uppercase tracking-[0.4em]">
+        Ministerio de Adoración JEMS • La Urbina
+      </p>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center gap-16">
+        <div class="w-full md:w-1/2 relative">
+          <div class="absolute -top-4 -left-4 w-24 h-24 border-t-2 border-l-2 border-[#D4AF37]"></div>
+          <Image
+            src={fotoLider}
+            alt="Líder de Alabanza"
+            class="rounded-2xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-500"
+          />
+          <div class="absolute -bottom-4 -right-4 w-24 h-24 border-b-2 border-r-2 border-[#D4AF37]"></div>
+        </div>
+        <div class="w-full md:w-1/2">
+          <h2 class="text-[#D4AF37] font-bold uppercase tracking-widest text-sm mb-2">Líder del ministerio</h2>
+          <h3 class="text-4xl font-bold text-white mb-6">Jonathan Navarro</h3>
+          <p class="text-slate-300 text-lg leading-relaxed mb-6 font-light">
+            Con una trayectoria dedicada a la formación musical y espiritual, nuestro director lidera al equipo bajo el
+            principio de la excelencia para el Maestro. Su visión es que cada nota sea una oración y cada acorde una
+            puerta al trono de la gracia.
+          </p>
+          <div class="grid grid-cols-2 gap-6 text-white/80">
+            <div class="border-l border-[#D4AF37]/50 pl-4">
+              <span class="block font-bold text-[#D4AF37]">Especialidad</span>
+              Interpretación y Composición
+            </div>
+            <div class="border-l border-[#D4AF37]/50 pl-4">
+              <span class="block font-bold text-[#D4AF37]">Llamado</span>
+              Restaurar el Altar
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#101829] rounded-t-[50px]">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white mb-16 text-center italic">
+        El <span class="text-[#D4AF37]">Corazón</span> de la Banda
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+        {
+          miembrosBanda.map((miembro) => (
+            <div class="bg-[#0c121e] p-8 rounded-2xl border border-white/5 hover:border-[#D4AF37]/30 transition-all group">
+              <div class="w-12 h-12 rounded-full bg-[#D4AF37]/10 flex items-center justify-center mb-6 text-[#D4AF37] group-hover:bg-[#D4AF37] group-hover:text-[#0c121e] transition-colors">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="w-6 h-6"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    d="M9 9l10.5-3m0 0l.5 3m-.5-3l-3 1.5M9 21V9m0 0H4m5 0l10.5 3.5m0 0V21m0-12l-10.5 3.5"
+                  />
+                </svg>
+              </div>
+              <h4 class="text-xl font-bold text-white mb-1">{miembro.nombre}</h4>
+              <p class="text-[#D4AF37] text-sm uppercase tracking-wider mb-4">{miembro.rol}</p>
+              <p class="text-slate-400 text-sm font-light leading-relaxed">{miembro.bio}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e] text-center">
+    <div class="max-w-3xl mx-auto px-6">
+      <div class="inline-block p-1 rounded-full bg-gradient-to-r from-[#D4AF37]/20 via-[#D4AF37] to-[#D4AF37]/20 mb-8">
+        <div class="bg-[#0c121e] rounded-full px-6 py-2">
+          <span class="text-white text-sm font-medium">¿Tienes un llamado musical?</span>
+        </div>
+      </div>
+      <h2 class="text-4xl font-bold text-white mb-6">Únete a la Voz de JEMS</h2>
+      <p class="text-slate-400 mb-10 text-lg">
+        Buscamos adoradores que entiendan que el servicio en el altar requiere preparación, santidad y compromiso. Las
+        audiciones están abiertas para músicos y vocalistas.
+      </p>
+      <a
+        href="/contacto"
+        class="bg-[#D4AF37] text-[#0c121e] px-10 py-4 rounded-full font-bold hover:bg-white transition-colors uppercase tracking-widest text-sm"
+      >
+        Postularme para Audición
+      </a>
+    </div>
+  </section>
+
+  <!-- mostramos nuevamente los ministerios -->
+  <Ministerios />
+  <Footer />
+</Layout>
