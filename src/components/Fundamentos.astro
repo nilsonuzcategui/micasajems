@@ -1,33 +1,41 @@
 ---
 // src/components/Principios.astro
+import { Image } from "astro:assets";
+
+// Importación de imágenes locales
+import imgIntegridad from "../assets/images/integridad.jpg";
+import imgLealtad from "../assets/images/lealtad.jpeg";
+import imgObediencia from "../assets/images/obediencia.jpg";
+import imgSujecion from "../assets/images/sujecion.jpg";
+
 const principios = [
   {
     titulo: "Sujeción",
     descripcion:
       "Reconocemos la autoridad divina y el orden establecido por Dios, sometiendo nuestra voluntad a Su señorío para Su gloria.",
-    img: "https://images.unsplash.com/photo-1507434965515-61970f2bd7c6?q=80&w=800&auto=format&fit=crop",
-    alt: "Sujeción a Dios",
+    img: imgSujecion, // Ahora referenciamos la imagen importada
+    alt: "Manos unidas en oración simbolizando sujeción a Dios",
   },
   {
     titulo: "Obediencia",
     descripcion:
       "No somos solo oidores, sino hacedores de la Palabra, respondiendo con fidelidad a los mandamientos de nuestro Señor.",
-    img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=800&auto=format&fit=crop",
-    alt: "Obediencia Cristiana",
+    img: imgObediencia, // Ahora referenciamos la imagen importada
+    alt: "Una persona leyendo la Biblia y escribiendo notas",
   },
   {
     titulo: "Lealtad",
     descripcion:
       "Mantenemos un compromiso inquebrantable con Cristo y Su evangelio, permaneciendo firmes como buenos soldados de Jesucristo.",
-    img: "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=800&auto=format&fit=crop",
-    alt: "Lealtad al Evangelio",
+    img: imgLealtad, // Ahora referenciamos la imagen importada
+    alt: "Un grupo de personas unidas mirando hacia un horizonte iluminado",
   },
   {
     titulo: "Integridad",
     descripcion:
       "Buscamos ser aprobados delante de Dios, viviendo con rectitud y transparencia en todas nuestras sendas.",
-    img: "https://img.freepik.com/foto-gratis/primer-plano-pareja-cogidos-mano-sobre-mesa-blanca-leyendo-sus-libros_181624-33485.jpg?semt=ais_hybrid&w=740&q=80",
-    alt: "Integridad a Cristo",
+    img: imgIntegridad, // Ahora referenciamos la imagen importada
+    alt: "Primer plano de una pareja leyendo la Biblia juntos",
   },
 ];
 ---
@@ -63,9 +71,12 @@ const principios = [
         principios.map((item) => (
           <div class="group bg-[#101829] border border-white/5 rounded-2xl overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500 hover:-translate-y-2">
             <div class="h-48 overflow-hidden relative">
-              <img
+              {/* Reemplazamos <img> por <Image> de Astro */}
+              <Image
                 src={item.img}
                 alt={item.alt}
+                width={800}
+                height={480}
                 class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
               />
               <div class="absolute inset-0 bg-[#101829]/20 group-hover:bg-transparent transition-colors" />
