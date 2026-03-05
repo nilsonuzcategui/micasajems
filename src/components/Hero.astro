@@ -1,34 +1,51 @@
 ---
-// src/components/Hero.astro (Actualizado con 2 Timoteo 2:15)
 import { Image } from "astro:assets";
 import logoImage from "../assets/images/logo-iglesia.png";
+// Importamos el video igual que en la sección de Sermones
+import videoHero from "../assets/videos/fondovideo1.mp4";
 ---
 
 <section
   class="relative min-h-screen flex items-center justify-center bg-[#101829] overflow-hidden pt-24 md:pt-32 pb-16"
 >
-  <div class="container mx-auto px-6 relative z-10 text-center flex flex-col items-center">
+  <div class="absolute inset-0 z-0">
+    <div class="absolute inset-0 bg-[#101829]/75 z-10"></div>
+
+    <div class="absolute inset-0 bg-gradient-to-b from-[#101829]/40 via-transparent to-[#0c121e] z-20"></div>
+
+    <video autoplay muted loop playsinline class="w-full h-full object-cover">
+      <source src={videoHero} type="video/mp4" />
+      Tu navegador no soporta video.
+    </video>
+  </div>
+
+  <div class="container mx-auto px-6 relative z-30 text-center flex flex-col items-center">
     <div class="mt-8 md:mt-0 mb-8 relative group">
-      <div class="absolute -inset-1 rounded-full blur-xl group-hover:bg-[#D4AF37]/30 transition duration-1000"></div>
-      <div class="relative bg-[#101829] p-4 rounded-full border border-white/10 shadow-2xl">
-        <Image src={logoImage} alt="Logo" class="h-20 md:h-32 w-auto object-contain" loading="eager" />
+      <div
+        class="absolute -inset-2 rounded-full blur-2xl bg-[#D4AF37]/20 group-hover:bg-[#D4AF37]/40 transition duration-1000"
+      >
+      </div>
+      <div class="relative bg-[#101829]/40 backdrop-blur-md p-4 rounded-full border border-white/10 shadow-2xl">
+        <Image src={logoImage} alt="Logo JEMS" class="h-20 md:h-32 w-auto object-contain" loading="eager" />
       </div>
     </div>
 
     <span
-      class="inline-block px-4 py-1 mb-6 text-sm font-semibold tracking-[0.2em] text-[#D4AF37] uppercase border border-[#D4AF37]/30 rounded-full bg-[#D4AF37]/5"
+      class="inline-block px-4 py-1 mb-6 text-sm font-semibold tracking-[0.2em] text-[#D4AF37] uppercase border border-[#D4AF37]/30 rounded-full bg-[#D4AF37]/10 backdrop-blur-sm"
     >
       Coro, Edo. Falcón • La Urbina
     </span>
 
-    <h1 class="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-[1.1] max-w-5xl text-balance">
+    <h1
+      class="text-4xl md:text-6xl lg:text-7xl font-bold text-white mb-6 leading-[1.1] max-w-5xl text-balance drop-shadow-2xl"
+    >
       Obreros que <span class="text-[#D4AF37]">usan bien</span>
       <br />
       la Palabra de Verdad.
     </h1>
 
-    <p class="max-w-3xl mx-auto text-lg md:text-xl text-slate-400 mb-10 leading-relaxed font-light">
-      En La Urbina, procuramos con diligencia presentarnos ante Dios aprobados, <span class="text-slate-200"
+    <p class="max-w-3xl mx-auto text-lg md:text-xl text-slate-300 mb-10 leading-relaxed font-light">
+      En La Urbina, procuramos con diligencia presentarnos ante Dios aprobados, <span class="text-[#D4AF37] font-medium"
         >estudiando con fidelidad</span
       > las Escrituras para vivir conforme a Su voluntad.
     </p>
@@ -36,20 +53,20 @@ import logoImage from "../assets/images/logo-iglesia.png";
     <div class="flex flex-col sm:flex-row gap-5 justify-center">
       <a
         href="#horarios"
-        class="px-10 py-4 bg-[#D4AF37] hover:bg-[#b8962d] text-[#101829] font-extrabold rounded-lg transition-all transform hover:scale-105 uppercase tracking-wider text-sm"
+        class="px-10 py-4 bg-[#D4AF37] hover:bg-[#b8962d] text-[#101829] font-extrabold rounded-lg transition-all transform hover:scale-105 uppercase tracking-wider text-sm shadow-xl shadow-[#D4AF37]/20"
       >
         Únete a nuestro estudio
       </a>
       <a
         href="#fundamentos"
-        class="px-10 py-4 bg-transparent border border-slate-700 text-white font-semibold rounded-lg transition-all uppercase tracking-wider text-sm"
+        class="px-10 py-4 bg-white/5 backdrop-blur-md border border-white/20 text-white font-semibold rounded-lg transition-all hover:bg-white/10 uppercase tracking-wider text-sm"
       >
         Nuestra Doctrina
       </a>
     </div>
   </div>
 
-  <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-[0]">
+  <div class="absolute bottom-0 left-0 w-full overflow-hidden leading-[0] z-40">
     <svg class="relative block w-full h-[80px]" viewBox="0 0 1200 120" preserveAspectRatio="none">
       <path d="M1200 120L0 120L0 0L1200 120Z" fill="#0c121e"></path>
     </svg>
