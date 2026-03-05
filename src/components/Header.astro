@@ -1,0 +1,95 @@
+---
+// src/components/Header.astro
+import { Image } from "astro:assets";
+// Asegúrate de que esta ruta y nombre de archivo sean correctos
+import logoImage from "../assets/images/logo-iglesia.png";
+
+const navItems = [
+  { name: "Inicio", href: "#" },
+  { name: "Fundamentos", href: "#fundamentos" },
+  { name: "Ministerios", href: "#ministerios" },
+  { name: "Sermones", href: "#sermones" },
+];
+---
+
+<header
+  class="fixed top-0 left-0 w-full z-50 transition-all duration-300 bg-[#101829]/90 backdrop-blur-md border-b border-white/10"
+>
+  <div class="container mx-auto px-6 py-3 flex justify-between items-center">
+    <a href="/" class="flex items-center gap-3 group">
+      <div class="relative">
+        <Image
+          src={logoImage}
+          alt="Logo Iglesia JEMS"
+          class="h-12 w-auto object-contain transition-transform duration-300 group-hover:scale-110"
+        />
+      </div>
+      <div class="flex flex-col">
+        <span class="text-white font-bold tracking-tighter text-lg leading-none">
+          IGLESIA <span class="text-[#D4AF37]">JEMS</span>
+        </span>
+        <span class="text-slate-400 text-[10px] tracking-[0.2em] uppercase font-medium"> Jesucristo es mi Señor </span>
+      </div>
+    </a>
+
+    <nav class="hidden md:flex items-center gap-8">
+      {
+        navItems.map((item) => (
+          <a
+            href={item.href}
+            class="text-slate-300 hover:text-[#D4AF37] text-sm font-semibold transition-colors duration-200"
+          >
+            {item.name}
+          </a>
+        ))
+      }
+      <a
+        href="#contacto"
+        class="px-6 py-2 bg-transparent border-2 border-[#D4AF37] text-[#D4AF37] hover:bg-[#D4AF37] hover:text-[#101829] rounded-lg text-sm font-bold transition-all duration-300 shadow-lg shadow-[#D4AF37]/10"
+      >
+        VISÍTANOS
+      </a>
+    </nav>
+
+    <button id="menu-toggle" class="md:hidden text-white p-2 focus:outline-none" aria-label="Abrir menú">
+      <svg xmlns="http://www.w3.org/2000/svg" class="h-7 w-7" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path>
+      </svg>
+    </button>
+  </div>
+
+  <div
+    id="mobile-menu"
+    class="hidden md:hidden bg-[#101829] border-b border-white/10 absolute w-full left-0 top-full shadow-2xl"
+  >
+    <div class="flex flex-col px-6 py-6 gap-4">
+      {
+        navItems.map((item) => (
+          <a href={item.href} class="text-slate-200 text-lg font-medium hover:text-[#D4AF37] transition-colors">
+            {item.name}
+          </a>
+        ))
+      }
+      <div class="h-[1px] bg-white/10 my-2"></div>
+      <a href="#contacto" class="text-[#D4AF37] font-bold text-lg"> Visítanos en La Urbina </a>
+    </div>
+  </div>
+</header>
+
+<script>
+  const btn = document.getElementById("menu-toggle");
+  const menu = document.getElementById("mobile-menu");
+
+  // Función para alternar el menú
+  btn?.addEventListener("click", () => {
+    menu?.classList.toggle("hidden");
+  });
+
+  // Cerrar menú al hacer click en un link (para móviles)
+  const links = menu?.querySelectorAll("a");
+  links?.forEach((link) => {
+    link.addEventListener("click", () => {
+      menu?.classList.add("hidden");
+    });
+  });
+</script>
