@@ -4,12 +4,14 @@ import { Image } from "astro:assets";
 import logoImage from "../assets/images/logo-iglesia.png";
 ---
 
-<section class="relative min-h-screen flex items-center justify-center bg-[#101829] overflow-hidden pt-16">
+<section
+  class="relative min-h-screen flex items-center justify-center bg-[#101829] overflow-hidden pt-24 md:pt-32 pb-16"
+>
   <div class="container mx-auto px-6 relative z-10 text-center flex flex-col items-center">
-    <div class="mb-8 relative group">
+    <div class="mt-8 md:mt-0 mb-8 relative group">
       <div class="absolute -inset-1 rounded-full blur-xl group-hover:bg-[#D4AF37]/30 transition duration-1000"></div>
       <div class="relative bg-[#101829] p-4 rounded-full border border-white/10 shadow-2xl">
-        <Image src={logoImage} alt="Logo" class="h-24 md:h-32 w-auto object-contain" loading="eager" />
+        <Image src={logoImage} alt="Logo" class="h-20 md:h-32 w-auto object-contain" loading="eager" />
       </div>
     </div>
 
