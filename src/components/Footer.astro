@@ -1,0 +1,111 @@
+---
+// src/components/Footer.astro
+const currentYear = new Date().getFullYear();
+
+const horarios = [
+  { dia: "Domingo", actividad: "Servicio Dominical", hora: "9:00 AM" },
+  { dia: "Miércoles", actividad: "Estudio Bíblico", hora: "6:30 PM" },
+  { dia: "Viernes", actividad: "Reunión de Oración", hora: "6:00 PM" },
+];
+
+const redes = [
+  {
+    nombre: "Instagram",
+    url: "#",
+    icono:
+      "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849s-.011 3.585-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.849-.07c-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849s.012-3.584.07-4.849c.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z",
+  },
+  {
+    nombre: "YouTube",
+    url: "#",
+    icono:
+      "M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814z",
+  },
+];
+---
+
+<footer class="bg-[#0c121e] border-t border-white/5 pt-20 pb-10">
+  <div class="container mx-auto px-6">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+      <div class="space-y-6">
+        <h3 class="text-[#D4AF37] font-bold text-xl italic">JEMS</h3>
+        <p class="text-slate-400 text-sm leading-relaxed font-light">
+          "Procura con diligencia presentarte a Dios aprobado..." <br />
+          Una comunidad dedicada a la sana doctrina en el corazón de Coro, Falcón.
+        </p>
+        <div class="flex gap-4">
+          {
+            redes.map((red) => (
+              <a
+                href={red.url}
+                class="w-10 h-10 rounded-full border border-white/10 flex items-center justify-center text-slate-400 hover:border-[#D4AF37] hover:text-[#D4AF37] transition-all"
+              >
+                <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                  <path d={red.icono} />
+                </svg>
+              </a>
+            ))
+          }
+        </div>
+      </div>
+
+      <div>
+        <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-sm">Horarios</h4>
+        <ul class="space-y-4">
+          {
+            horarios.map((h) => (
+              <li class="border-b border-white/5 pb-2">
+                <span class="text-[#D4AF37] text-xs font-bold block uppercase">{h.dia}</span>
+                <div class="flex justify-between items-center">
+                  <span class="text-slate-300 text-sm">{h.actividad}</span>
+                  <span class="text-slate-500 text-xs font-mono">{h.hora}</span>
+                </div>
+              </li>
+            ))
+          }
+        </ul>
+      </div>
+
+      <div>
+        <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-sm">Visítanos</h4>
+        <p class="text-slate-400 text-sm leading-relaxed mb-4">
+          Urb. La Urbina, Calle principal.<br />
+          Santa Ana de Coro, Estado Falcón.<br />
+          Venezuela.
+        </p>
+        <a
+          href="https://maps.google.com"
+          target="_blank"
+          class="text-[#D4AF37] text-sm font-semibold hover:underline inline-flex items-center gap-2"
+        >
+          Ver en Google Maps
+          <svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+          </svg>
+        </a>
+      </div>
+
+      <div>
+        <h4 class="text-white font-bold mb-6 uppercase tracking-widest text-sm">Contacto</h4>
+        <div class="bg-[#101829] p-6 rounded-2xl border border-white/5">
+          <p class="text-slate-400 text-xs mb-2 italic">¿Necesitas oración o información?</p>
+          <a href="https://wa.me/tunumero" class="text-white font-bold text-lg hover:text-[#D4AF37] transition-colors">
+            +58 4XX XXX XXXX
+          </a>
+          <p class="text-slate-500 text-xs mt-4 uppercase tracking-tighter">iglesiajems@correo.com</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="pt-8 border-t border-white/5 flex flex-col md:row justify-between items-center gap-4 text-center">
+      <p class="text-slate-500 text-xs font-light">
+        © {currentYear} Iglesia Jesucristo es Mi Señor. Todos los derechos reservados.
+      </p>
+      <p class="text-slate-600 text-[10px] uppercase tracking-widest">Obreros que usan bien la palabra de verdad</p>
+    </div>
+  </div>
+</footer>
