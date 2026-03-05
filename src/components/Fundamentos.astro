@@ -1,56 +1,78 @@
 ---
-// src/components/Fundamentos.astro (Actualizado)
-const fundamentos = [
+// src/components/Principios.astro
+const principios = [
   {
-    titulo: "Estudio Diligente",
+    titulo: "Sujeción",
     descripcion:
-      "No tomamos la Palabra a la ligera. Escudriñamos las Escrituras con rigor exegético para entender el consejo de Dios.",
+      "Reconocemos la autoridad divina y el orden establecido por Dios, sometiendo nuestra voluntad a Su señorío para Su gloria.",
     img: "https://images.unsplash.com/photo-1507434965515-61970f2bd7c6?q=80&w=800&auto=format&fit=crop",
-    alt: "Estudio Bíblico",
+    alt: "Sujeción a Dios",
   },
   {
-    titulo: "Vida Aprobada",
+    titulo: "Obediencia",
     descripcion:
-      "Buscamos que nuestra conducta en Coro sea un testimonio vivo, viviendo como obreros que no tienen de qué avergonzarse.",
+      "No somos solo oidores, sino hacedores de la Palabra, respondiendo con fidelidad a los mandamientos de nuestro Señor.",
     img: "https://images.unsplash.com/photo-1490730141103-6cac27aaab94?q=80&w=800&auto=format&fit=crop",
-    alt: "Integridad Cristiana",
+    alt: "Obediencia Cristiana",
   },
   {
-    titulo: "Verdad Inmutable",
+    titulo: "Lealtad",
     descripcion:
-      "Predicamos a Cristo crucificado, sin añadir ni quitar, usando bien la palabra de verdad en cada sermón.",
+      "Mantenemos un compromiso inquebrantable con Cristo y Su evangelio, permaneciendo firmes como buenos soldados de Jesucristo.",
     img: "https://images.unsplash.com/photo-1515162305285-0293e4767cc2?q=80&w=800&auto=format&fit=crop",
-    alt: "Predicación Fiel",
+    alt: "Lealtad al Evangelio",
+  },
+  {
+    titulo: "Integridad",
+    descripcion:
+      "Buscamos ser aprobados delante de Dios, viviendo con rectitud y transparencia en todas nuestras sendas.",
+    img: "https://img.freepik.com/foto-gratis/primer-plano-pareja-cogidos-mano-sobre-mesa-blanca-leyendo-sus-libros_181624-33485.jpg?semt=ais_hybrid&w=740&q=80",
+    alt: "Integridad a Cristo",
   },
 ];
 ---
 
-<section id="fundamentos" class="py-24 bg-[#0c121e] relative">
+<section id="principios" class="py-24 bg-[#0c121e] relative">
   <div class="container mx-auto px-6 relative z-10">
-    <div class="max-w-3xl mb-16">
-      <h2 class="text-[#D4AF37] font-bold tracking-widest text-sm uppercase mb-3 text-balance">
-        Basados en 2 Timoteo 2:15
-      </h2>
-      <p class="text-3xl md:text-5xl font-bold text-white mb-6">
-        Comprometidos con la <span class="italic font-light text-[#D4AF37]">Exposición Fiel</span>
+    <div class="w-full mb-16">
+      <h2 class="text-[#D4AF37] font-bold tracking-widest text-sm uppercase mb-3">Pilares del Ministerio</h2>
+      <p class="text-3xl md:text-5xl font-bold text-white mb-8 max-w-5xl">
+        Nuestros <span class="italic font-light text-[#D4AF37]">Principios</span> en Cristo
       </p>
-      <div class="h-1 w-20 bg-[#D4AF37] mb-8"></div>
+
+      <div class="space-y-6 text-slate-300 text-lg leading-relaxed font-light max-w-6xl">
+        <p>
+          En el ministerio <span class="text-white font-medium">JEMS</span>, entendemos que el llamado a ser obreros
+          aprobados no nace de la habilidad humana, sino de una postura del corazón rendida ante la soberanía de Dios.
+          Como está escrito en <span class="text-[#D4AF37] italic">Santiago 4:7</span>, la verdadera victoria espiritual
+          comienza cuando nos sometemos a Él.
+        </p>
+        <p>
+          Nuestra visión es formar vidas que reflejen la naturaleza de Cristo a través de cuatro columnas fundamentales
+          que sostienen nuestro servicio y comunión. No se trata solo de métodos, sino de una <span
+            class="text-white border-b border-[#D4AF37]/30 italic">cultura del Reino</span
+          > fundamentada en la fidelidad a las Escrituras.
+        </p>
+      </div>
+
+      <div class="h-1 w-20 bg-[#D4AF37] mt-8"></div>
     </div>
 
-    <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+    <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
       {
-        fundamentos.map((item) => (
-          <div class="group bg-[#101829] border border-white/5 rounded-2xl overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500">
-            <div class="h-56 overflow-hidden relative">
+        principios.map((item) => (
+          <div class="group bg-[#101829] border border-white/5 rounded-2xl overflow-hidden hover:border-[#D4AF37]/50 transition-all duration-500 hover:-translate-y-2">
+            <div class="h-48 overflow-hidden relative">
               <img
                 src={item.img}
                 alt={item.alt}
-                class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700"
+                class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-700 scale-110 group-hover:scale-100"
               />
+              <div class="absolute inset-0 bg-[#101829]/20 group-hover:bg-transparent transition-colors" />
             </div>
-            <div class="p-8">
-              <h3 class="text-xl font-bold text-white mb-4 italic italic">{item.titulo}</h3>
-              <p class="text-slate-400 text-sm leading-relaxed leading-relaxed font-light">{item.descripcion}</p>
+            <div class="p-6">
+              <h3 class="text-xl font-bold text-white mb-3 italic">{item.titulo}</h3>
+              <p class="text-slate-400 text-sm leading-relaxed font-light">{item.descripcion}</p>
             </div>
           </div>
         ))
@@ -58,7 +80,14 @@ const fundamentos = [
     </div>
 
     <div class="mt-20 text-center border-t border-white/5 pt-10">
-      <blockquote class="text-slate-400 italic text-2xl font-serif max-w-2xl mx-auto">
+      <div class="mb-6 inline-block">
+        <svg class="w-8 h-8 text-[#D4AF37]/30 mx-auto" fill="currentColor" viewBox="0 0 24 24">
+          <path
+            d="M14.017 21L14.017 18C14.017 16.8954 14.9125 16 16.0171 16H19.0171C19.5694 16 20.0171 15.5523 20.0171 15V9C20.0171 8.44772 19.5694 8 19.0171 8H15.0171C14.4648 8 14.0171 7.55228 14.0171 7V5C14.0171 4.44772 14.4648 4 15.0171 4H20.0171C21.1217 4 22.0171 4.89543 22.0171 6V15C22.0171 18.3137 19.3308 21 16.0171 21H14.0171ZM3 21L3 18C3 16.8954 3.89543 16 5 16H8C8.55228 16 9 15.5523 9 15V9C9 8.44772 8.55228 8 8 8H4C3.44772 8 3 7.55228 3 7V5C3 4.44772 3.44772 4 4 4H9C10.1046 4 11 4.89543 11 6V15C11 18.3137 8.31371 21 5 21H3Z"
+          ></path>
+        </svg>
+      </div>
+      <blockquote class="text-slate-400 italic text-2xl font-serif max-w-4xl mx-auto leading-snug">
         "Procura con diligencia presentarte a Dios aprobado, como obrero que no tiene de qué avergonzarse..."
       </blockquote>
       <p class="text-[#D4AF37] mt-4 font-bold tracking-widest uppercase text-sm">— 2 Timoteo 2:15</p>
