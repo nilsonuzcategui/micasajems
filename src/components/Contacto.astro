@@ -1,0 +1,136 @@
+---
+// src/components/Contacto.astro
+
+const redesSociales = [
+  {
+    nombre: "Instagram",
+    usuario: "@jems_coro",
+    link: "https://instagram.com/tu_usuario",
+    icono:
+      "M12 2.163c3.204 0 3.584.012 4.85.07 3.252.148 4.771 1.691 4.919 4.919.058 1.265.069 1.645.069 4.849s-.011 3.585-.069 4.85c-.149 3.225-1.664 4.771-4.919 4.919-1.266.058-1.644.07-4.85.07s-3.584-.012-4.849-.07c-3.26-.149-4.771-1.699-4.919-4.92-.058-1.265-.07-1.644-.07-4.849s.012-3.584.07-4.849c.149-3.227 1.664-4.771 4.919-4.919 1.266-.057 1.645-.069 4.849-.069z",
+  },
+  {
+    nombre: "WhatsApp",
+    usuario: "+58 412-XXXXXXX",
+    link: "https://wa.me/58412XXXXXXX",
+    icono:
+      "M.057 24l1.687-6.163c-1.041-1.804-1.588-3.849-1.587-5.946.003-6.556 5.338-11.891 11.893-11.891 3.181.001 6.167 1.24 8.413 3.488 2.245 2.248 3.481 5.236 3.48 8.414-.003 6.557-5.338 11.892-11.893 11.892-1.99-.001-3.951-.5-5.688-1.448l-6.305 1.654zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884 0 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981z",
+  },
+];
+
+// Reemplaza esta URL con la que obtengas al compartir tu ubicación en Google Maps
+// Pasos: Ir a Google Maps -> Buscar tu iglesia -> Compartir -> Incorporar mapa -> Copiar el src del iframe
+const googleMapsEmbedUrl =
+  "https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d7822.705837703528!2d-69.7161161899567!3d11.381893093889422!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x8e85d503e03da559%3A0x92dd3de9e1db97ac!2sIglesia%20Jesucristo%20Es%20Mi%20Se%C3%B1or!5e0!3m2!1ses!2sve!4v1772719568757!5m2!1ses!2sve";
+---
+
+<section id="contacto" class="py-24 bg-[#101829] relative overflow-hidden">
+  <div class="absolute top-0 right-0 w-96 h-96 bg-[#D4AF37]/5 rounded-full blur-[100px] -z-10"></div>
+
+  <div class="container mx-auto px-6">
+    <div class="text-center mb-16">
+      <h2 class="text-3xl md:text-5xl font-bold text-white mb-4">Contáctanos</h2>
+      <p class="text-slate-400 max-w-2xl mx-auto italic font-light">
+        "Donde dos o tres están congregados en mi nombre, allí estoy yo en medio de ellos."
+      </p>
+    </div>
+
+    <div class="grid lg:grid-cols-2 gap-12 items-start">
+      <div class="space-y-8">
+        <div class="bg-[#0c121e]/50 border border-white/5 p-8 rounded-3xl backdrop-blur-sm">
+          <h3 class="text-[#D4AF37] font-bold text-xl mb-6">Nuestras Vías de Comunicación</h3>
+
+          <div class="space-y-6">
+            <div class="flex gap-4">
+              <div
+                class="w-12 h-12 bg-[#D4AF37]/10 rounded-2xl flex items-center justify-center text-[#D4AF37] shrink-0"
+              >
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  class="w-6 h-6"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
+                </svg>
+              </div>
+              <div>
+                <p class="text-white font-semibold">Ubicación</p>
+                <p class="text-slate-400 text-sm">Calle principal de La Urbina, Coro, Falcón.</p>
+              </div>
+            </div>
+
+            <div class="grid sm:grid-cols-2 gap-4 pt-4">
+              {
+                redesSociales.map((red) => (
+                  <a
+                    href={red.link}
+                    target="_blank"
+                    class="flex items-center gap-4 p-4 rounded-2xl bg-[#101829] border border-white/5 hover:border-[#D4AF37]/50 transition-all group"
+                  >
+                    <div class="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-slate-300 group-hover:text-[#D4AF37]">
+                      <svg class="w-5 h-5" fill="currentColor" viewBox="0 0 24 24">
+                        <path d={red.icono} />
+                      </svg>
+                    </div>
+                    <div>
+                      <p class="text-xs text-slate-500 uppercase tracking-tighter">{red.nombre}</p>
+                      <p class="text-sm text-white font-medium">{red.usuario}</p>
+                    </div>
+                  </a>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="p-8 border-l-2 border-[#D4AF37] bg-[#D4AF37]/5 rounded-r-3xl text-slate-300">
+          <p class="text-sm italic">
+            Estamos listos para recibirte. Si tienes alguna petición de oración o deseas saber más sobre nuestros
+            estudios bíblicos, no dudes en escribirnos.
+          </p>
+        </div>
+      </div>
+
+      <div class="relative group">
+        <div
+          class="absolute -inset-1 bg-gradient-to-r from-[#D4AF37] to-amber-900 rounded-[2.5rem] blur opacity-20 group-hover:opacity-40 transition duration-1000"
+        >
+        </div>
+
+        <div class="relative bg-[#0c121e] rounded-[2rem] overflow-hidden border border-white/10 h-[450px] w-full">
+          <iframe
+            src={googleMapsEmbedUrl}
+            width="100%"
+            height="100%"
+            style="border:0; filter: grayscale(1) invert(0.9) contrast(1.2);"
+            allowfullscreen=""
+            loading="lazy"
+            referrerpolicy="no-referrer-when-downgrade"
+          >
+          </iframe>
+        </div>
+
+        <a
+          href="https://maps.google.com"
+          target="_blank"
+          class="absolute bottom-6 right-6 px-6 py-3 bg-[#D4AF37] text-[#101829] font-bold rounded-full shadow-2xl hover:scale-105 transition-transform text-sm flex items-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path
+              stroke-linecap="round"
+              stroke-linejoin="round"
+              stroke-width="2"
+              d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"></path>
+          </svg>
+          CÓMO LLEGAR
+        </a>
+      </div>
+    </div>
+  </div>
+</section>
