@@ -8,6 +8,7 @@ import Layout from "../../layouts/Layout.astro";
 import fotoLider from "../../assets/images/jonathan.png";
 import fotoGrupal from "../../assets/images/todalabanda.jpeg";
 import Ministerios from "../../components/Ministerios.astro";
+import Header from "../../components/Header.astro";
 
 const miembrosBanda = [
   { nombre: "Yohana Navarro", rol: "Voces / Dirección", bio: "Llamada a guiar al pueblo en adoración." },
@@ -34,6 +35,8 @@ const miembrosBanda = [
 ---
 
 <Layout title="Adoración y Alabanza | JEMS">
+  <Header />
+
   <section class="relative pt-32 pb-20 overflow-hidden bg-[#0c121e]">
     <div class="absolute top-0 left-0 w-full h-full opacity-20 pointer-events-none">
       <div class="absolute top-[-10%] right-[-10%] w-[600px] h-[600px] bg-[#D4AF37]/20 rounded-full blur-[150px]"></div>
