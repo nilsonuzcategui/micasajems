@@ -1,0 +1,157 @@
+---
+import { Image } from "astro:assets";
+import Footer from "../../components/Footer.astro";
+import Header from "../../components/Header.astro";
+import Ministerios from "../../components/Ministerios.astro";
+import Layout from "../../layouts/Layout.astro";
+
+// Importa las imágenes reales aquí
+import fotoPastor from "../../assets/images/argenisnavarro.png";
+import fotoPastora from "../../assets/images/mitzy.png";
+import fotoPastoresJuntos from "../../assets/images/mitzynavarro.png";
+
+const pilaresPastoral = [
+  {
+    titulo: "Cuidado del Alma",
+    desc: "Acompañamiento espiritual y consejería basada estrictamente en principios bíblicos.",
+  },
+  {
+    titulo: "Sana Doctrina",
+    desc: "Enseñanza expositiva de la Palabra para el equipamiento de los santos.",
+  },
+  {
+    titulo: "Visión Familiar",
+    desc: "Restauración y fortalecimiento del núcleo familiar como base de la iglesia.",
+  },
+];
+---
+
+<Layout title="Cuerpo Pastoral | JEMS">
+  <Header />
+
+  <section class="relative pt-32 pb-20 overflow-hidden bg-[#0c121e]">
+    <div class="absolute inset-0 opacity-10 pointer-events-none">
+      <div
+        class="absolute top-0 left-1/2 -translate-x-1/2 w-full h-full bg-gradient-to-b from-[#D4AF37]/20 to-transparent"
+      >
+      </div>
+    </div>
+
+    <div class="container mx-auto px-6 relative z-10 text-center">
+      <h1 class="text-[#D4AF37] font-bold tracking-[0.4em] uppercase text-xs mb-4">Gobierno y Guía Espiritual</h1>
+      <p class="text-5xl md:text-7xl font-serif text-white mb-6 italic">
+        Cuerpo <span class="text-[#D4AF37]">Pastoral</span>
+      </p>
+      <div class="h-px w-24 bg-[#D4AF37] mx-auto mb-8"></div>
+      <p class="max-w-2xl mx-auto text-slate-400 text-lg font-light leading-relaxed">
+        "Y os daré pastores según mi corazón, que os apacienten con ciencia y con inteligencia."
+        <span class="block text-[#D4AF37] mt-3 font-semibold not-italic tracking-widest text-sm">— Jeremías 3:15</span>
+      </p>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center gap-12 mb-32 animate-fade-in">
+        <div class="w-full md:w-1/2 group">
+          <div class="relative">
+            <div
+              class="absolute inset-0 border border-[#D4AF37]/30 translate-x-4 translate-y-4 rounded-2xl transition-transform group-hover:translate-x-2 group-hover:translate-y-2"
+            >
+            </div>
+            <Image
+              src={fotoPastor}
+              alt="Pastor Principal"
+              class="relative z-10 rounded-2xl grayscale group-hover:grayscale-0 transition-all duration-700 shadow-2xl"
+            />
+          </div>
+        </div>
+        <div class="w-full md:w-1/2">
+          <span class="text-[#D4AF37] font-bold text-sm tracking-tighter italic">Pastor Principal</span>
+          <h2 class="text-4xl font-bold text-white mt-2 mb-6 uppercase tracking-tighter">Argenis Navarro</h2>
+          <p class="text-slate-300 text-lg font-light leading-relaxed mb-6">
+            Llamado con una unción especial para la enseñanza y el liderazgo transformador. Su vida está dedicada a la
+            exposición fiel de las Escrituras y al desarrollo de líderes con carácter de Reino.
+          </p>
+          <div class="bg-white/5 p-6 rounded-xl border-l-4 border-[#D4AF37]">
+            <p class="text-white italic">
+              "Mi mayor gozo es ver a un creyente caminar en la plenitud de su identidad en Cristo."
+            </p>
+          </div>
+        </div>
+      </div>
+
+      <div class="flex flex-col md:flex-row-reverse items-center gap-12 animate-fade-in">
+        <div class="w-full md:w-1/2 group">
+          <div class="relative">
+            <div
+              class="absolute inset-0 border border-[#D4AF37]/30 -translate-x-4 translate-y-4 rounded-2xl transition-transform group-hover:-translate-x-2 group-hover:translate-y-2"
+            >
+            </div>
+            <Image
+              src={fotoPastora}
+              alt="Pastora Principal"
+              class="relative z-10 rounded-2xl grayscale group-hover:grayscale-0 transition-all duration-700 shadow-2xl"
+            />
+          </div>
+        </div>
+        <div class="w-full md:w-1/2 md:text-right">
+          <span class="text-[#D4AF37] font-bold text-sm tracking-tighter italic">Pastora Principal</span>
+          <h2 class="text-4xl font-bold text-white mt-2 mb-6 uppercase tracking-tighter">Mitzy de Navarro</h2>
+          <p class="text-slate-300 text-lg font-light leading-relaxed mb-6">
+            Con un corazón de madre espiritual, su ministerio se enfoca en la restauración emocional, la intercesión y
+            el discipulado de mujeres, llevando esperanza a través del amor de Dios.
+          </p>
+          <div class="bg-white/5 p-6 rounded-xl border-r-4 border-[#D4AF37] inline-block">
+            <p class="text-white italic">"No hay corazón tan roto que el amor del Padre no pueda sanar."</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#101829] relative">
+    <div class="container mx-auto px-6">
+      <div class="text-center mb-16">
+        <h3 class="text-[#D4AF37] font-bold text-sm uppercase tracking-widest mb-2">Fundamentos</h3>
+        <p class="text-3xl text-white font-serif italic">Nuestra Labor Ministerial</p>
+      </div>
+
+      <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+        {
+          pilaresPastoral.map((pilar) => (
+            <div class="p-10 rounded-3xl bg-[#0c121e] border border-white/5 hover:border-[#D4AF37]/40 transition-all duration-500 group">
+              <div class="w-12 h-1 bg-[#D4AF37] mb-6 group-hover:w-full transition-all duration-700" />
+              <h4 class="text-xl font-bold text-white mb-4 italic">{pilar.titulo}</h4>
+              <p class="text-slate-400 font-light leading-relaxed">{pilar.desc}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="relative h-[600px] rounded-[40px] overflow-hidden group">
+        <Image
+          src={fotoPastoresJuntos}
+          alt="Pastores JEMS"
+          class="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-1000"
+        />
+        <div class="absolute inset-0 bg-gradient-to-t from-[#0c121e] via-transparent to-transparent"></div>
+        <div class="absolute inset-0 flex items-center justify-center p-6">
+          <div class="text-center max-w-2xl">
+            <h2 class="text-4xl md:text-5xl font-bold text-white mb-4 italic">Una Sola Visión</h2>
+            <p class="text-slate-200 text-lg font-light">
+              "Guiando a la familia JEMS hacia la estatura de la plenitud de Cristo."
+            </p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <Ministerios />
+  <Footer />
+</Layout>
