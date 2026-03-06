@@ -1,0 +1,228 @@
+---
+import { Image } from "astro:assets";
+import Footer from "../../components/Footer.astro";
+import Header from "../../components/Header.astro";
+import Layout from "../../layouts/Layout.astro";
+
+// Importa tus imágenes aquí
+import galeria1 from "../../assets/images/jovenes1.png";
+import galeria10 from "../../assets/images/jovenes10.png";
+import galeria2 from "../../assets/images/jovenes2.png";
+import galeria3 from "../../assets/images/jovenes3.png";
+import galeria4 from "../../assets/images/jovenes4.png";
+import galeria5 from "../../assets/images/jovenes5.png";
+import galeria6 from "../../assets/images/jovenes6.png";
+import galeria7 from "../../assets/images/jovenes7.png";
+import galeria8 from "../../assets/images/jovenes8.png";
+import galeria9 from "../../assets/images/jovenes9.png";
+import fotoPastoresJovenes from "../../assets/images/pastoresjuveniles.png";
+
+const actividades = [
+  { etiqueta: "Conexión", titulo: "Noches de Fuego", color: "bg-orange-500" },
+  { etiqueta: "Crecimiento", titulo: "Discipulado Pro", color: "bg-blue-500" },
+  { etiqueta: "Impacto", titulo: "Misiones Urbanas", color: "bg-purple-500" },
+];
+---
+
+<Layout title="Generación de Relevo | JEMS">
+  <Header />
+
+  <section class="relative pt-32 pb-20 overflow-hidden bg-[#0c121e]">
+    <div class="absolute top-0 right-0 w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] animate-pulse">
+    </div>
+    <div class="absolute bottom-0 left-0 w-[500px] h-[500px] bg-[#D4AF37]/5 rounded-full blur-[120px]"></div>
+
+    <div class="container mx-auto px-6 relative z-10">
+      <div class="flex flex-col items-center text-center">
+        <span
+          class="px-4 py-1 rounded-full border border-[#D4AF37]/30 text-[#D4AF37] text-xs font-bold tracking-[0.3em] uppercase mb-6"
+        >
+          Somos el Ahora
+        </span>
+        <h1 class="text-6xl md:text-8xl font-black text-white mb-4 tracking-tighter">
+          JEMS <span
+            class="text-transparent bg-clip-text bg-gradient-to-r from-[#D4AF37] to-amber-200 italic font-light"
+            >Youth</span
+          >
+        </h1>
+        <p class="max-w-2xl text-slate-400 text-lg md:text-xl font-light leading-relaxed">
+          Una generación que no se avergüenza del Evangelio. Formando líderes con identidad, propósito y fuego en el
+          corazón.
+        </p>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-20 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="bg-[#101829] rounded-[40px] p-8 md:p-16 border border-white/5 relative overflow-hidden">
+        <div class="flex flex-col lg:flex-row items-center gap-12 relative z-10">
+          <div class="w-full lg:w-1/2">
+            <div class="relative group">
+              <div
+                class="absolute -inset-1 bg-gradient-to-r from-[#D4AF37] to-purple-600 rounded-2xl blur opacity-25 group-hover:opacity-50 transition duration-1000"
+              >
+              </div>
+              <Image
+                src={fotoPastoresJovenes}
+                alt="Pastores de Jóvenes"
+                class="relative rounded-2xl shadow-2xl w-full object-cover"
+              />
+            </div>
+          </div>
+          <div class="w-full lg:w-1/2">
+            <h2 class="text-[#D4AF37] font-bold text-sm uppercase tracking-widest mb-2">Pastores de Jóvenes</h2>
+            <h3 class="text-4xl font-bold text-white mb-6 italic">Gabriel & Roselyn</h3>
+            <p class="text-slate-300 text-lg leading-relaxed mb-8 font-light">
+              Apasionados por ver a la juventud correr hacia su destino profético. Juntos lideran JEMS Youth con una
+              visión fresca, combinando la profundidad de la Palabra con la relevancia que demanda esta generación.
+            </p>
+            <div class="flex gap-4">
+              {
+                actividades.map((act) => (
+                  <div class="flex flex-col">
+                    <span class={`w-12 h-1 ${act.color} mb-2`} />
+                    <span class="text-white text-xs font-bold uppercase tracking-tighter">{act.etiqueta}</span>
+                  </div>
+                ))
+              }
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white mb-12 italic text-center md:text-left">
+        Nuestra <span class="text-[#D4AF37]">Vida</span> en Comunidad
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-4 gap-4 auto-rows-[200px] md:auto-rows-[250px]">
+        <div class="md:col-span-2 md:row-span-2 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria1}
+            alt="Evento Joven"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8"
+          >
+            <p class="text-white font-bold italic text-xl">Cena Navideña</p>
+          </div>
+        </div>
+
+        <div class="md:col-span-1 md:row-span-2 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria2}
+            alt="Alabanza"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div
+            class="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent opacity-0 group-hover:opacity-100 transition-opacity flex items-end p-8"
+          >
+            <p class="text-white font-bold italic text-xl">Fogatas</p>
+          </div>
+        </div>
+
+        <div class="md:col-span-1 md:row-span-1 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria3}
+            alt="Amistad"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        </div>
+
+        <div class="md:col-span-1 md:row-span-1 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria4}
+            alt="Servicio"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        </div>
+
+        <div class="md:col-span-4 md:row-span-1 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria10}
+            alt="Comunidad"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div
+            class="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-sm opacity-0 group-hover:opacity-100 transition-all"
+          >
+            <span class="text-white font-serif italic text-3xl">#SomosJEMSYouth</span>
+          </div>
+        </div>
+
+        <div class="md:col-span-1 md:row-span-1 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria6}
+            alt="Actividades"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        </div>
+
+        <div class="md:col-span-2 md:row-span-1 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria7}
+            alt="Momentos"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        </div>
+
+        <div class="md:col-span-1 md:row-span-2 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria8}
+            alt="Liderazgo"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        </div>
+
+        <div class="md:col-span-1 md:row-span-1 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria9}
+            alt="Sonrisas"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        </div>
+
+        <div class="md:col-span-2 md:row-span-1 relative group overflow-hidden rounded-3xl">
+          <Image
+            src={galeria5}
+            alt="Cierre"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-20 bg-[#101829]">
+    <div class="container mx-auto px-6 text-center">
+      <p class="text-[#D4AF37] text-4xl md:text-6xl font-serif italic max-w-4xl mx-auto leading-tight">
+        "No permitas que nadie menosprecie tu juventud..."
+      </p>
+      <p class="text-white/40 mt-6 tracking-[0.5em] uppercase text-sm font-bold">1 Timoteo 4:12</p>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
+
+<style>
+  /* Animación suave de entrada */
+  .animate-fade-in {
+    animation: fadeIn 1.5s ease-out forwards;
+  }
+  @keyframes fadeIn {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+</style>
