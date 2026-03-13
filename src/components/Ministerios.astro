@@ -23,7 +23,7 @@ const ministerios = [
     icono:
       "M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z",
     color: "from-red-500/10 to-transparent",
-    link: "/ayuda-social",
+    link: "/ministerios/ayuda-social",
   },
   {
     nombre: "Adoración",
@@ -34,13 +34,14 @@ const ministerios = [
     link: "/ministerios/adoracion-y-alabanzas",
   },
   {
-    nombre: "Intercesión",
-    descripcion: "Sosteniendo la obra de Dios en oración constante, clamando por las familias y nuestra nación.",
-    icono: "M4.5 12.75l6 6 9-13.5",
+    nombre: "Ministerio Infantil",
+    descripcion: "Formando la generación de relevo con amor, enseñanza bíblica y nutrición integral.",
+    icono:
+      "M15 19.128a9.38 9.38 0 002.625.372 9.337 9.337 0 004.121-.952 4.125 4.125 0 00-7.533-2.493M15 19.128v-.003c0-1.113-.285-2.16-.786-3.07M15 19.128v.106A12.318 12.318 0 018.624 21c-2.331 0-4.512-.645-6.374-1.766l-.001-.109a6.375 6.375 0 0111.964-3.07M12 6.375a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zm8.25 2.25a2.625 2.625 0 11-5.25 0 2.625 2.625 0 015.25 0z",
     iconoSVG:
-      "M12 21l-8.228-3.654A2 2 0 012.62 15.513V4.24a2 2 0 012.31-1.974l8.07 1.344 8.07-1.344a2 2 0 012.31 1.974v11.273a2 2 0 01-1.152 1.833L12 21z",
-    color: "from-teal-500/10 to-transparent",
-    link: "/intercesion",
+      "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
+    color: "from-[#D4AF37]/10 to-transparent",
+    link: "/ministerios/infantil",
   },
 ];
 ---
@@ -66,8 +67,9 @@ const ministerios = [
     <div id="contenedor-ministerios" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
       {
         ministerios.map((m, index) => (
+          /* 1. Aseguramos que el div tenga la clase 'relative' (ya la tiene) */
           <div
-            class="card-ministerio group relative p-8 rounded-3xl border border-white/5 bg-gradient-to-br transition-all duration-700 opacity-0 translate-y-20 hover:border-[#D4AF37]/40 hover:-translate-y-2"
+            class="card-ministerio group relative p-8 rounded-3xl border border-white/5 bg-gradient-to-br transition-all duration-700 opacity-0 translate-y-20 hover:border-[#D4AF37]/40 hover:-translate-y-2 cursor-pointer"
             style={`transition-delay: ${index * 100}ms;`}
             class:list={[m.color]}
           >
@@ -87,10 +89,7 @@ const ministerios = [
             <h3 class="text-2xl font-bold text-white mb-4 italic">{m.nombre}</h3>
             <p class="text-slate-400 leading-relaxed font-light mb-6">{m.descripcion}</p>
 
-            <a
-              href={m.link}
-              class="inline-flex items-center text-sm font-semibold text-[#D4AF37] hover:gap-2 transition-all"
-            >
+            <div class="inline-flex items-center text-sm font-semibold text-[#D4AF37] group-hover:gap-2 transition-all">
               Saber más
               <svg
                 xmlns="http://www.w3.org/2000/svg"
@@ -102,7 +101,11 @@ const ministerios = [
               >
                 <path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
               </svg>
-            </a>
+              {/* 2. El TRUCO: Este <a> vacío tiene la clase 'after:absolute' y 'after:inset-0'.
+          Esto crea un pseudo-elemento que se expande por TODA la carta.
+        */}
+              <a href={m.link} class="after:absolute after:inset-0" aria-label={`Leer más sobre ${m.nombre}`} />
+            </div>
           </div>
         ))
       }

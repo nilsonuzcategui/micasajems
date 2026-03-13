@@ -1,0 +1,213 @@
+---
+import { Image } from "astro:assets";
+import Footer from "../../components/Footer.astro";
+import Header from "../../components/Header.astro";
+import Layout from "../../layouts/Layout.astro";
+
+// Importa tus imágenes reales aquí
+import fotoLiderObra from "../../assets/images/alejandro.jpg";
+import fotoEquipoObra from "../../assets/images/equiposocial.jpg";
+import Ministerios from "../../components/Ministerios.astro";
+
+const iniciativas = [
+  {
+    titulo: "Comedor Infantil",
+    descripcion:
+      "Brindamos platos de comida nutritiva a niños de sectores vulnerables, alimentando no solo el cuerpo, sino compartiendo esperanza.",
+    icono:
+      "M18 18.72a9.094 9.094 0 003.741-.479 3 3 0 00-4.682-2.72m.94 3.198l.001.031c0 .225-.012.447-.037.666A11.944 11.944 0 0112 21c-2.17 0-4.207-.576-5.963-1.584A6.062 6.062 0 016 18.719m12 0a5.971 5.971 0 00-.941-3.197m0 0A5.995 5.995 0 0012 12.75a5.995 5.995 0 00-5.058 2.772m0 0a3 3 0 00-4.681 2.72 8.986 8.986 0 003.74.477m.94-3.197a5.971 5.971 0 00-.94 3.197M15 6.75a3 3 0 11-6 0 3 3 0 016 0zm6 3a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0zm-13.5 0a2.25 2.25 0 11-4.5 0 2.25 2.25 0 014.5 0z",
+  },
+  {
+    titulo: "Bolsas de Amor",
+    descripcion:
+      "Entrega directa de insumos básicos y alimentos no perecederos a familias que atraviesan dificultades económicas extremas.",
+    icono:
+      "M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z",
+  },
+];
+
+const equipoSocial = [
+  { nombre: "Alejandro Medina", rol: "Logística" },
+  { nombre: "Dorkys Medina", rol: "Atención Social" },
+  { nombre: "Maria Navarro", rol: "Distribución" },
+  { nombre: "Norys de Medina", rol: "Apoyo General" },
+];
+---
+
+<Layout title="Obra Social | JEMS">
+  <Header />
+
+  <section class="relative pt-32 pb-20 overflow-hidden bg-[#0c121e]">
+    <div class="absolute inset-0 opacity-15 pointer-events-none">
+      <div class="absolute top-0 left-1/4 w-[500px] h-[500px] bg-[#D4AF37]/20 rounded-full blur-[120px]"></div>
+    </div>
+
+    <div class="container mx-auto px-6 relative z-10 text-center">
+      <h1 class="text-[#D4AF37] font-bold tracking-[0.4em] uppercase text-xs mb-4 italic">Manos que Bendicen</h1>
+      <p class="text-5xl md:text-7xl font-serif text-white mb-8 italic">
+        Nuestra <span class="text-[#D4AF37]">Obra Social</span>
+      </p>
+      <div class="h-1 w-20 bg-[#D4AF37] mx-auto mb-10"></div>
+      <p class="max-w-3xl mx-auto text-slate-300 text-lg md:text-xl font-light leading-relaxed">
+        En JEMS creemos que el amor de Dios se manifiesta a través del servicio al prójimo. No solo predicamos Su
+        Palabra, extendemos nuestras manos para saciar el hambre de quienes más lo necesitan.
+      </p>
+    </div>
+  </section>
+
+  <section class="py-20 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="grid grid-cols-1 md:grid-cols-2 gap-12">
+        {
+          iniciativas.map((item) => (
+            <div class="bg-[#101829] border border-white/5 p-10 rounded-[40px] hover:border-[#D4AF37]/30 transition-all duration-500 group">
+              <div class="w-16 h-16 rounded-2xl bg-[#D4AF37]/10 flex items-center justify-center text-[#D4AF37] mb-8 group-hover:bg-[#D4AF37] group-hover:text-[#0c121e] transition-colors">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke-width="1.5"
+                  stroke="currentColor"
+                  class="w-8 h-8"
+                >
+                  <path stroke-linecap="round" stroke-linejoin="round" d={item.icono} />
+                </svg>
+              </div>
+              <h3 class="text-3xl font-bold text-white mb-4 italic">{item.titulo}</h3>
+              <p class="text-slate-400 text-lg font-light leading-relaxed">{item.descripcion}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center gap-16">
+        <div class="w-full md:w-1/2 relative">
+          <div class="absolute -top-4 -left-4 w-24 h-24 border-t-2 border-l-2 border-[#D4AF37]"></div>
+          <Image
+            src={fotoLiderObra}
+            alt="Responsable de Obra Social"
+            class="rounded-2xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-700 w-full object-cover"
+          />
+          <div class="absolute -bottom-4 -right-4 w-24 h-24 border-b-2 border-r-2 border-[#D4AF37]"></div>
+        </div>
+
+        <div class="w-full md:w-1/2">
+          <h2 class="text-[#D4AF37] font-bold uppercase tracking-widest text-sm mb-2">Responsable del Ministerio</h2>
+          <h3 class="text-4xl font-bold text-white mb-6 italic">Alejandro Medina</h3>
+          <p class="text-slate-300 text-lg leading-relaxed mb-6 font-light">
+            Bajo la convicción de que "servir es reinar", nuestro líder coordina cada jornada con el objetivo de que el
+            amor de Cristo sea tangible. Su labor se enfoca en la gestión de recursos y la transparencia absoluta en
+            cada donación recibida.
+          </p>
+          <div class="inline-flex items-center text-[#D4AF37] italic border-b border-[#D4AF37]/30 pb-2">
+            "Cada plato servido es una oportunidad para mostrar el rostro de Jesús."
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#101829] rounded-t-[60px]">
+    <div class="container mx-auto px-6 text-center">
+      <h3 class="text-white text-3xl font-bold mb-12 italic">
+        El Corazón que <span class="text-[#D4AF37]">Mueve</span> la Obra
+      </h3>
+
+      <div class="max-w-5xl mx-auto mb-16 relative group px-4">
+        <div
+          class="absolute inset-0 border-2 border-[#D4AF37]/20 rounded-3xl -rotate-1 group-hover:rotate-0 transition-transform duration-500"
+        >
+        </div>
+        <Image
+          src={fotoEquipoObra}
+          alt="Equipo de Obra Social JEMS"
+          class="relative z-10 rounded-3xl shadow-2xl transition-all duration-700 scale-[0.98] group-hover:scale-100 w-full"
+        />
+      </div>
+
+      <div class="grid grid-cols-2 md:grid-cols-4 gap-8 max-w-4xl mx-auto">
+        {
+          equipoSocial.map((miembro) => (
+            <div class="text-center">
+              <p class="text-white font-bold text-lg">{miembro.nombre}</p>
+              <p class="text-[#D4AF37] text-xs uppercase tracking-widest">{miembro.rol}</p>
+            </div>
+          ))
+        }
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="bg-[#101829] rounded-[60px] p-8 md:p-16 border border-white/5">
+        <div class="flex flex-col lg:flex-row items-center gap-16">
+          <div class="w-full lg:w-1/2">
+            <h2 class="text-[#D4AF37] font-bold text-sm uppercase tracking-[0.3em] mb-4">Colabora con nosotros</h2>
+            <h3 class="text-4xl md:text-5xl font-bold text-white mb-6 italic">Sé parte de la bendición</h3>
+            <p class="text-slate-300 text-lg font-light mb-8 leading-relaxed">
+              Cada aporte, por pequeño que parezca, se traduce en una sonrisa y un plato caliente. Tu generosidad nos
+              permite llegar a más rincones de nuestra ciudad y transformar vidas a través del amor práctico.
+            </p>
+
+            <div class="flex flex-col sm:flex-row gap-6">
+              <a
+                href="https://www.paypal.com/invoice/p/#CJBZF4RARQQLQELE"
+                target="_blank"
+                class="group relative inline-flex items-center justify-center px-8 py-4 font-bold text-[#0c121e] transition-all duration-200 bg-[#D4AF37] rounded-full hover:bg-white focus:outline-none"
+              >
+                <svg class="w-5 h-5 mr-3" viewBox="0 0 24 24" fill="currentColor">
+                  <path
+                    d="M7.076 21.337H2.47a.641.641 0 0 1-.633-.74L4.944 3.32a.641.641 0 0 1 .633-.54h7.508c5.44 0 7.726 2.738 6.941 7.751-.52 3.313-2.58 5.438-5.61 5.438h-1.556a.64.64 0 0 0-.623.504l-.59 2.508c-.143.606-.684 1.033-1.307 1.033l-3.251.323z"
+                  ></path>
+                </svg>
+                Donar por PayPal
+              </a>
+
+              <a
+                href="/#contacto"
+                class="inline-flex items-center justify-center px-8 py-4 text-white font-bold border-2 border-white/10 rounded-full hover:bg-white/5 transition-colors"
+              >
+                Otras formas de ayudar
+              </a>
+            </div>
+          </div>
+
+          <div class="w-full lg:w-1/2 relative">
+            <div class="absolute -inset-4 bg-[#D4AF37]/10 blur-3xl rounded-full"></div>
+            <div class="relative bg-[#0c121e] p-8 rounded-3xl border border-white/10 shadow-2xl">
+              <h4 class="text-white font-bold text-xl mb-4 italic">¿Cómo se usan los fondos?</h4>
+              <ul class="space-y-4">
+                <li class="flex items-start text-slate-400 text-sm">
+                  <span class="text-[#D4AF37] mr-3 mt-1">✓</span> 100% destinado a la compra de alimentos frescos y secos.
+                </li>
+                <li class="flex items-start text-slate-400 text-sm">
+                  <span class="text-[#D4AF37] mr-3 mt-1">✓</span> Logística de transporte a zonas de difícil acceso.
+                </li>
+                <li class="flex items-start text-slate-400 text-sm">
+                  <span class="text-[#D4AF37] mr-3 mt-1">✓</span> Kits de higiene para adultos mayores.
+                </li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-20 text-center bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <blockquote class="text-2xl md:text-3xl text-white/60 font-serif italic max-w-4xl mx-auto">
+        "A Jehová presta el que da al pobre, y el bien que ha hecho, se lo volverá a pagar."
+      </blockquote>
+      <p class="text-[#D4AF37] mt-4 font-bold tracking-[0.3em] uppercase text-xs">Proverbios 19:17</p>
+    </div>
+  </section>
+  <!-- mostramos nuevamente los ministerios -->
+  <Ministerios />
+  <Footer />
+</Layout>

@@ -1,0 +1,157 @@
+---
+import { Image } from "astro:assets";
+
+// Importa tus imágenes reales
+import ninos1 from "../../assets/images/ninos1.jpg";
+import ninos2 from "../../assets/images/ninos2.jpg";
+import ninosComiendo1 from "../../assets/images/ninos3.jpg";
+import ninosComiendo2 from "../../assets/images/ninos4.jpg";
+import fotoLiderInfantil from "../../assets/images/rolando.jpg";
+import Footer from "../../components/Footer.astro";
+import Header from "../../components/Header.astro";
+import Layout from "../../layouts/Layout.astro";
+
+const pilares = [
+  { titulo: "Bíblico", desc: "Enseñamos la palabra de forma creativa y dinámica." },
+  { titulo: "Nutrición", desc: "Cuidamos su crecimiento con alimentación balanceada." },
+  { titulo: "Valores", desc: "Forjamos el carácter de Cristo desde la infancia." },
+];
+---
+
+<Layout title="Ministerio Infantil | JEMS">
+  <Header />
+
+  <section class="relative pt-32 pb-20 overflow-hidden bg-[#0c121e]">
+    <div class="absolute inset-0 opacity-20 pointer-events-none">
+      <div class="absolute -top-24 -right-24 w-[600px] h-[600px] bg-[#D4AF37]/10 rounded-full blur-[150px]"></div>
+    </div>
+
+    <div class="container mx-auto px-6 relative z-10 text-center">
+      <h1 class="text-[#D4AF37] font-bold tracking-[0.4em] uppercase text-xs mb-4">Generación de Relevo</h1>
+      <p class="text-5xl md:text-7xl font-bold text-white mb-8 italic">
+        JEMS <span class="text-[#D4AF37] font-light">Kids</span>
+      </p>
+      <blockquote class="max-w-2xl mx-auto text-slate-400 italic text-lg border-l-2 border-[#D4AF37]/30 pl-6">
+        "Dejad a los niños venir a mí, y no se lo impidáis; porque de los tales es el reino de los cielos."
+        <span class="block text-[#D4AF37] mt-2 font-bold not-italic">— Mateo 19:14</span>
+      </blockquote>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e]">
+    <div class="container mx-auto px-6">
+      <div class="flex flex-col md:flex-row items-center gap-16">
+        <div class="w-full md:w-1/2 order-2 md:order-1">
+          <h2 class="text-[#D4AF37] font-bold uppercase tracking-widest text-sm mb-2">Directora Infantil</h2>
+          <h3 class="text-4xl font-bold text-white mb-6">Nombre del Líder</h3>
+          <p class="text-slate-300 text-lg leading-relaxed mb-6 font-light">
+            Nuestra visión es que cada niño no solo aprenda historias bíblicas, sino que experimente el amor de Dios.
+            Trabajamos arduamente para crear un entorno seguro donde su fe y su cuerpo crezcan sanos.
+          </p>
+          <div class="grid grid-cols-1 gap-4">
+            {
+              pilares.map((p) => (
+                <div class="flex items-center gap-4 bg-[#101829] p-4 rounded-2xl border border-white/5">
+                  <div class="w-2 h-2 rounded-full bg-[#D4AF37]" />
+                  <p class="text-white font-medium">
+                    <span class="text-[#D4AF37]">{p.titulo}:</span> {p.desc}
+                  </p>
+                </div>
+              ))
+            }
+          </div>
+        </div>
+        <div class="w-full md:w-1/2 relative order-1 md:order-2">
+          <div class="absolute -top-4 -right-4 w-24 h-24 border-t-2 border-r-2 border-[#D4AF37]"></div>
+          <Image
+            src={fotoLiderInfantil}
+            alt="Líder Infantil"
+            class="rounded-3xl shadow-2xl grayscale hover:grayscale-0 transition-all duration-700"
+          />
+          <div class="absolute -bottom-4 -left-4 w-24 h-24 border-b-2 border-l-2 border-[#D4AF37]"></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#101829] rounded-[60px]">
+    <div class="container mx-auto px-6">
+      <h2 class="text-3xl font-bold text-white mb-12 text-center italic">
+        Vida en <span class="text-[#D4AF37]">Aprendizaje</span> y Provisión
+      </h2>
+
+      <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+        <div class="group relative h-[400px] overflow-hidden rounded-3xl border border-white/10">
+          <Image
+            src={ninos1}
+            alt="Niños aprendiendo"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0c121e] to-transparent opacity-60"></div>
+          <p class="absolute bottom-6 left-6 text-white font-bold italic">Enseñanza Creativa</p>
+        </div>
+
+        <div class="group relative h-[400px] overflow-hidden rounded-3xl border border-[#D4AF37]/30">
+          <Image
+            src={ninosComiendo1}
+            alt="Niños almorzando"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
+
+          <p class="absolute bottom-6 left-6 text-white font-bold italic">Compañerismo</p>
+        </div>
+
+        <div class="group relative h-[400px] overflow-hidden rounded-3xl border border-white/10">
+          <Image
+            src={ninos2}
+            alt="Actividad grupal"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div
+            class="absolute top-4 right-4 bg-[#D4AF37] text-[#0c121e] text-[10px] font-bold px-3 py-1 rounded-full uppercase"
+          >
+            Nutrición
+          </div>
+          <div class="absolute inset-0 bg-gradient-to-t from-[#0c121e] to-transparent opacity-60"></div>
+          <p class="absolute bottom-6 left-6 text-white font-bold italic">Alimentando el Futuro</p>
+        </div>
+
+        <div class="group relative h-[400px] overflow-hidden rounded-3xl border border-[#D4AF37]/30">
+          <Image
+            src={ninosComiendo2}
+            alt="Plato de comida"
+            class="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
+          />
+          <div class="absolute inset-0 bg-black/20 group-hover:bg-transparent transition-all"></div>
+          <div
+            class="absolute top-4 right-4 bg-[#D4AF37] text-[#0c121e] text-[10px] font-bold px-3 py-1 rounded-full uppercase"
+          >
+            Amor Práctico
+          </div>
+          <p class="absolute bottom-6 left-6 text-white font-bold italic">Equipo de trabajo</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <section class="py-24 bg-[#0c121e] text-center">
+    <div class="max-w-3xl mx-auto px-6">
+      <h2 class="text-4xl font-bold text-white mb-6 italic">¿Quieres traer a tus pequeños?</h2>
+      <p class="text-slate-400 mb-10 text-lg font-light">
+        Nuestras puertas están abiertas todos los domingos. Contamos con personal capacitado y un ambiente diseñado para
+        que se sientan en casa.
+      </p>
+      <div class="flex flex-col sm:flex-row justify-center gap-4">
+        <a
+          href="/#contacto"
+          class="bg-[#D4AF37] text-[#0c121e] px-10 py-4 rounded-full font-bold hover:bg-white transition-colors uppercase tracking-widest text-sm"
+        >
+          Más Información
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <Footer />
+</Layout>
