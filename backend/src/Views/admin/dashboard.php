@@ -1,8 +1,19 @@
 <?php
 /** @var array $stats */
-$stats = \App\Models\Actividad::stats();
-$upcoming = \App\Models\Actividad::all(['desde' => date('Y-m-d')]);
-$upcoming = array_slice($upcoming, 0, 5);
+/** @var array $upcoming */
+try {
+    $stats = \App\Models\Actividad::stats();
+} catch (\Throwable $e) {
+    $stats = ['total' => 0, 'hoy' => 0, 'proximas' => 0, 'mes' => 0];
+    $dbError = 'No se pudo conectar a la base de datos. Corré las migraciones: php bin/migrate.php';
+}
+
+try {
+    $upcoming = \App\Models\Actividad::all(['desde' => date('Y-m-d')]);
+    $upcoming = array_slice($upcoming, 0, 5);
+} catch (\Throwable $e) {
+    $upcoming = [];
+}
 ?>
 <div class="max-w-6xl mx-auto px-6 py-10">
     <header class="mb-8 flex items-center justify-between">
@@ -14,6 +25,12 @@ $upcoming = array_slice($upcoming, 0, 5);
             + Nueva actividad
         </a>
     </header>
+
+    <?php if (!empty($dbError)): ?>
+        <div class="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+            <strong>Error de BD:</strong> <?= htmlspecialchars($dbError) ?>
+        </div>
+    <?php endif; ?>
 
     <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-10">
         <?php
@@ -34,7 +51,13 @@ $upcoming = array_slice($upcoming, 0, 5);
     <section class="bg-[#101829] border border-white/10 rounded-2xl p-6">
         <h2 class="text-lg font-bold text-white mb-4">Próximas actividades</h2>
         <?php if (empty($upcoming)): ?>
-            <p class="text-slate-400 text-sm">Aún no hay actividades programadas. <a class="text-[#D4AF37] underline" href="<?= htmlspecialchars(\App\View::adminUrl('actividades/nueva')) ?>">Crear la primera</a>.</p>
+            <p class="text-slate-400 text-sm">
+                <?php if (empty($dbError)): ?>
+                    Aún no hay actividades programadas. <a class="text-[#D4AF37] underline" href="<?= htmlspecialchars(\App\View::adminUrl('actividades/nueva')) ?>">Crear la primera</a>.
+                <?php else: ?>
+                    Una vez corregido el error de BD, las actividades aparecerán aquí.
+                <?php endif; ?>
+            </p>
         <?php else: ?>
             <ul class="divide-y divide-white/5">
                 <?php foreach ($upcoming as $a): ?>

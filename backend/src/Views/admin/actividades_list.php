@@ -1,5 +1,10 @@
 <?php
-$items = \App\Models\Actividad::all();
+try {
+    $items = \App\Models\Actividad::all();
+} catch (\Throwable $e) {
+    $items = [];
+    $dbError = 'No se pudo cargar la lista de actividades. Verificá que la BD esté accesible y que hayas corrido las migraciones.';
+}
 ?>
 <div class="max-w-6xl mx-auto px-6 py-10">
     <header class="mb-8 flex items-center justify-between">
@@ -9,6 +14,12 @@ $items = \App\Models\Actividad::all();
         </div>
         <a href="<?= htmlspecialchars(\App\View::adminUrl('actividades/nueva')) ?>" class="px-5 py-2.5 rounded-xl bg-[#D4AF37] text-[#101829] font-semibold hover:opacity-90">+ Nueva</a>
     </header>
+
+    <?php if (!empty($dbError)): ?>
+        <div class="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+            <?= htmlspecialchars($dbError) ?>
+        </div>
+    <?php endif; ?>
 
     <?php if (!empty($flash_ok)): ?>
         <div class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm">Actividad guardada correctamente.</div>
@@ -30,7 +41,9 @@ $items = \App\Models\Actividad::all();
                 </tr>
             </thead>
             <tbody class="divide-y divide-white/5">
-                <?php if (empty($items)): ?>
+                <?php if (!empty($dbError)): ?>
+                    <tr><td colspan="6" class="text-center text-slate-400 py-8">No se pueden listar actividades debido al error de BD.</td></tr>
+                <?php elseif (empty($items)): ?>
                     <tr><td colspan="6" class="text-center text-slate-400 py-8">Sin actividades cargadas.</td></tr>
                 <?php else: foreach ($items as $a): ?>
                     <tr class="hover:bg-white/5">

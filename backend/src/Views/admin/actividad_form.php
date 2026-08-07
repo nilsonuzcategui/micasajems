@@ -1,10 +1,19 @@
 <?php
 /** @var int|null $id */
 $isEdit = !empty($id);
-$act = $isEdit ? \App\Models\Actividad::find((int)$id) : null;
-if ($isEdit && !$act) {
-    echo '<div class="max-w-3xl mx-auto px-6 py-10 text-red-400">Actividad no encontrada.</div>';
-    return;
+$act = null;
+$dbError = null;
+
+if ($isEdit) {
+    try {
+        $act = \App\Models\Actividad::find((int)$id);
+    } catch (\Throwable $e) {
+        $dbError = 'No se pudo cargar la actividad. La BD puede no estar inicializada.';
+    }
+    if ($isEdit && !$act) {
+        echo '<div class="max-w-3xl mx-auto px-6 py-10 text-red-400">Actividad no encontrada.</div>';
+        return;
+    }
 }
 
 $v = $act ?? [
@@ -24,6 +33,12 @@ $v = $act ?? [
         <a href="<?= htmlspecialchars(\App\View::adminUrl('actividades')) ?>" class="text-sm text-slate-400 hover:text-[#D4AF37]">&larr; Volver al listado</a>
         <h1 class="text-3xl font-bold text-white mt-2"><?= $isEdit ? 'Editar' : 'Nueva' ?> actividad</h1>
     </header>
+
+    <?php if (!empty($dbError)): ?>
+        <div class="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
+            <?= htmlspecialchars($dbError) ?>
+        </div>
+    <?php endif; ?>
 
     <?php if (!empty($flash_error)): ?>
         <div class="mb-4 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
