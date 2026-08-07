@@ -1,0 +1,24 @@
+# =====================================================
+# Rewrite /admin/* → index.php del backend
+# =====================================================
+RewriteEngine On
+
+# Bloquear acceso directo a archivos/directorios sensibles del backend
+RewriteRule ^(\.env|\.gitignore|src/|database/|storage/) - [F,L]
+
+# Si empieza con /admin/, lo maneja el backend (PHP)
+RewriteCond %{REQUEST_URI} ^/admin(/|$)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^admin/(.*)$ index.php [L,QSA]
+
+# Si es /api/*, lo maneja el backend
+RewriteCond %{REQUEST_URI} ^/api(/|$)
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^api/(.*)$ index.php [L,QSA]
+
+# Todo lo demás, intentar como archivo estático primero
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L,QSA]

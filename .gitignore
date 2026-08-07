@@ -22,3 +22,9 @@ pnpm-debug.log*
 
 # jetbrains setting folder
 .idea/
+
+# Backend PHP
+backend/.env
+backend/storage/logs/*.log
+backend/storage/cache/*
+!backend/storage/cache/.gitkeep

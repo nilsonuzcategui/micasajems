@@ -1,0 +1,135 @@
+---
+import type { Actividad } from "../lib/api";
+import { categoriaColor } from "../lib/api";
+
+interface Props {
+  actividades: Actividad[];
+}
+
+const { actividades } = Astro.props;
+
+const events = actividades.map((a) => ({
+  id: String(a.id),
+  title: a.titulo,
+  start: `${a.fecha}T${a.hora_inicio}:00`,
+  end: a.hora_fin ? `${a.fecha}T${a.hora_fin}:00` : undefined,
+  backgroundColor: categoriaColor(a.categoria),
+  borderColor: categoriaColor(a.categoria),
+  extendedProps: {
+    lugar: a.lugar,
+    descripcion: a.descripcion,
+    categoria: a.categoria,
+  },
+}));
+---
+
+<section class="space-y-3">
+  <header class="flex items-baseline justify-between mb-2">
+    <h3 class="text-2xl font-bold text-white">Calendario</h3>
+    <span class="text-xs text-slate-400 uppercase tracking-wider">
+      {actividades.length} {actividades.length === 1 ? "actividad" : "actividades"} programadas
+    </span>
+  </header>
+
+  <div
+    id="calendario-actividades"
+    class="rounded-2xl border border-white/5 bg-[#0c121e]/60 p-4 min-h-[600px]"
+    data-events={JSON.stringify(events)}
+  >
+  </div>
+</section>
+
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" />
+<script is:inline src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+
+<script is:inline>
+  (function () {
+    const el = document.getElementById("calendario-actividades");
+    if (!el || !window.FullCalendar) return;
+    const events = JSON.parse(el.getAttribute("data-events") || "[]");
+
+    const calendar = new FullCalendar.Calendar(el, {
+      initialView: "dayGridMonth",
+      locale: "es",
+      firstDay: 1,
+      height: 650,
+      headerToolbar: {
+        left: "prev,next today",
+        center: "title",
+        right: "dayGridMonth,timeGridWeek,listWeek",
+      },
+      buttonText: {
+        today: "Hoy",
+        month: "Mes",
+        week: "Semana",
+        list: "Lista",
+      },
+      events,
+      eventDidMount: function (info) {
+        const props = info.event.extendedProps || {};
+        const lugar = props.lugar ? `\n📍 ${props.lugar}` : "";
+        info.el.title = `${info.event.title}${lugar}`;
+      },
+      eventClick: function (info) {
+        info.jsEvent.preventDefault();
+        const props = info.event.extendedProps || {};
+        const lugar = props.lugar || "Sin ubicación";
+        const desc = props.descripcion || "";
+        const detalle = `${info.event.title}\n\n📍 ${lugar}${desc ? "\n\n" + desc : ""}`;
+        alert(detalle);
+      },
+    });
+    calendar.render();
+  })();
+</script>
+
+<style is:global>
+  #calendario-actividades .fc {
+    --fc-border-color: rgba(255, 255, 255, 0.06);
+    --fc-page-bg-color: transparent;
+    --fc-neutral-bg-color: rgba(255, 255, 255, 0.02);
+    --fc-list-event-hover-bg-color: rgba(212, 175, 55, 0.08);
+    --fc-today-bg-color: rgba(212, 175, 55, 0.08);
+    --fc-event-text-color: #101829;
+    --fc-button-bg-color: rgba(255, 255, 255, 0.05);
+    --fc-button-border-color: rgba(255, 255, 255, 0.1);
+    --fc-button-text-color: #e2e8f0;
+    --fc-button-hover-bg-color: rgba(212, 175, 55, 0.2);
+    --fc-button-hover-border-color: #d4af37;
+    --fc-button-active-bg-color: #d4af37;
+    --fc-button-active-border-color: #d4af37;
+    color: #cbd5e1;
+    font-family: inherit;
+  }
+  #calendario-actividades .fc-toolbar-title {
+    color: #fff;
+    font-weight: 700;
+  }
+  #calendario-actividades .fc-col-header-cell-cushion {
+    color: #94a3b8;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.7rem;
+    padding: 8px 0;
+  }
+  #calendario-actividades .fc-daygrid-day-number {
+    color: #cbd5e1;
+    font-weight: 500;
+    padding: 6px 8px;
+  }
+  #calendario-actividades .fc-event {
+    border-radius: 6px;
+    border: none;
+    padding: 2px 4px;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+  }
+  #calendario-actividades .fc-list-day-cushion {
+    background: rgba(212, 175, 55, 0.1) !important;
+  }
+  #calendario-actividades .fc-list-event-title,
+  #calendario-actividades .fc-list-event-time {
+    color: #cbd5e1;
+  }
+</style>
