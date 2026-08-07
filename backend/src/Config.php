@@ -15,12 +15,16 @@ final class Config
         }
 
         if (!is_readable($path)) {
-            throw new \RuntimeException("Archivo .env no encontrado en: {$path}");
+            // No .env → usar valores vacíos por defecto (no crashear)
+            // El endpoint /api/health va a mostrar qué falta
+            self::$loaded = true;
+            return;
         }
 
-        $lines = file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
+        $lines = @file($path, FILE_IGNORE_NEW_LINES | FILE_SKIP_EMPTY_LINES);
         if ($lines === false) {
-            throw new \RuntimeException("No se pudo leer el archivo .env");
+            self::$loaded = true;
+            return;
         }
 
         foreach ($lines as $line) {

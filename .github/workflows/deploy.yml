@@ -68,7 +68,7 @@ jobs:
             - name: Generar .env del backend (producción)
               run: |
                   mkdir -p backend
-                  cat > backend/.env <<EOF
+                  cat > backend/.env <<'JEMS_ENV_EOF'
                   DB_HOST=${{ secrets.DB_HOST }}
                   DB_PORT=${{ secrets.DB_PORT }}
                   DB_NAME=${{ secrets.DB_NAME }}
@@ -89,7 +89,10 @@ jobs:
                   SENDPULSE_API_URL=https://api.sendpulse.com
                   SENDPULSE_API_ID=${{ secrets.SENDPULSE_API_ID }}
                   SENDPULSE_API_SECRET=${{ secrets.SENDPULSE_API_SECRET }}
-                  EOF
+                  JEMS_ENV_EOF
+                  echo "✓ .env generado"
+                  echo "Contenido:"
+                  cat backend/.env
 
             # 5. Subir el backend PHP completo vía FTP al subdominio admin
             # El .htaccess bloquea el acceso directo a .env, src/, database/, storage/
