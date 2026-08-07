@@ -3,7 +3,7 @@ import { defineConfig } from 'astro/config';
 
 import tailwindcss from '@tailwindcss/vite';
 
-const API_TARGET = process.env.PUBLIC_API_URL ?? 'http://localhost/micasajems/backend/public';
+const API_TARGET = process.env.PUBLIC_API_URL ?? 'http://localhost/micasajems/backend';
 
 // https://astro.build/config
 export default defineConfig({

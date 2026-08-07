@@ -34,28 +34,82 @@ jobs:
             - name: Build Astro Project
               run: npm run build
 
-            # 4. Desplegar los archivos vía FTP al servidor
-            - name: Deploy to Custom Server via FTP
+            # =========================================================
+            # DEPLOY 1: Frontend Astro → micasajems.com (public_html)
+            # =========================================================
+            - name: Deploy Astro Frontend via FTP
               uses: SamKirkland/FTP-Deploy-Action@v4.3.0
               with:
-                  # Configuraciones de conexión con los Secrets
                   server: ${{ secrets.SSH_HOST }}
                   username: ${{ secrets.SSH_USER }}
                   password: ${{ secrets.SSH_PASSWORD }}
-                  # Especificamos el puerto 21 para FTP
                   port: 21
-
-                  # La carpeta local a subir
                   local-dir: ./dist/
-
-                  # La carpeta remota: La 'raiz' de tu hosting.
-                  # **Si la raíz de tu web es '/public_html/' o similar, cámbialo.**
                   server-dir: /
-
-                  # Configuraciones de despliegue
-                  state-name: .ftp-deploy-state
+                  state-name: .ftp-deploy-state-frontend
                   log-level: verbose
                   exclude: |
                       .git*
                       .git*/**
                       .cache/**
+
+            # =========================================================
+            # DEPLOY 2: Backend PHP → admin.micasajems.com (subdominio)
+            # =========================================================
+
+            # 4. Generar .env de producción para el backend PHP
+            # Este archivo NO debe estar en git, se genera en cada deploy
+            - name: Generar .env del backend (producción)
+              run: |
+                  mkdir -p backend
+                  cat > backend/.env <<EOF
+                  DB_HOST=${{ secrets.DB_HOST }}
+                  DB_PORT=${{ secrets.DB_PORT }}
+                  DB_NAME=${{ secrets.DB_NAME }}
+                  DB_USER=${{ secrets.DB_USER }}
+                  DB_PASS=${{ secrets.DB_PASS }}
+                  DB_CHARSET=utf8mb4
+
+                  APP_ENV=production
+                  APP_DEBUG=false
+                  APP_URL=https://admin.micasajems.com
+                  API_BASE_URL=https://admin.micasajems.com/api
+                  ADMIN_URL=https://admin.micasajems.com
+
+                  SESSION_NAME=jems_admin_session
+                  SESSION_LIFETIME=7200
+
+                  SENDPULSE_API_URL=https://api.sendpulse.com
+                  SENDPULSE_API_ID=${{ secrets.SENDPULSE_API_ID }}
+                  SENDPULSE_API_SECRET=${{ secrets.SENDPULSE_API_SECRET }}
+                  EOF
+
+            # 5. Subir el backend PHP completo vía FTP al subdominio admin
+            # El .htaccess bloquea el acceso directo a .env, src/, database/, storage/
+            - name: Deploy Backend PHP via FTP
+              uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+              with:
+                  # Credenciales FTP del subdominio admin.micasajems.com
+                  server: ${{ secrets.ADMIN_SSH_HOST }}
+                  username: ${{ secrets.ADMIN_SSH_USER }}
+                  password: ${{ secrets.ADMIN_SSH_PASSWORD }}
+                  port: 21
+
+                  # Subimos toda la carpeta backend/
+                  # El entry point es backend/index.php
+                  # Al hacer FTP a /, index.php queda en public_html/index.php
+                  local-dir: ./backend/
+
+                  # Raíz del subdominio admin (suele ser /public_html/)
+                  server-dir: /
+
+                  state-name: .ftp-deploy-state-backend
+                  log-level: verbose
+                  exclude: |
+                      .git*
+                      .git*/**
+                      .env.example
+                      README.md
+                      storage/logs/*
+                      storage/cache/*
+                      database/migrations/README.md

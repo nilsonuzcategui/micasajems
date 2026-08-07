@@ -5,16 +5,38 @@ y suscripciones push vía SendPulse.
 
 ---
 
+## 🏗️ Arquitectura
+
+```
+                         Usuario
+                            │
+                ┌───────────┴───────────┐
+                ▼                       ▼
+       micasajems.com             admin.micasajems.com
+       (Astro estático)           (Backend PHP)
+                │                       │
+                │  fetch (CORS)         │
+                └───────────────────────┘
+                                │
+                                ▼
+                          MySQL (Hestia)
+```
+
+- **Frontend Astro** → `micasajems.com/public_html/`
+- **Backend PHP** → `admin.micasajems.com/public_html/` (subdominio dedicado)
+- **BD** → MySQL en el mismo VPS
+
+---
+
 ## 📂 Estructura
 
 ```
 micasajems/
-├── backend/                         # PHP API + panel admin (NO se publica)
+├── backend/                         # PHP API + panel admin
 │   ├── .env                         # (NO subir) credenciales reales
 │   ├── .env.example                 # plantilla
-│   ├── public/
-│   │   ├── index.php                # front controller
-│   │   └── .htaccess
+│   ├── .htaccess                    # bloqueo + rewrite al front controller
+│   ├── index.php                    # front controller (entry point)
 │   ├── src/
 │   │   ├── Bootstrap.php
 │   │   ├── Config.php               # lector .env
@@ -37,16 +59,18 @@ micasajems/
 │   │   ├── ResumenSemanal.astro
 │   │   └── BotonNotificaciones.astro
 │   └── lib/api.ts                   # cliente TS hacia el backend
-└── astro.config.mjs                 # proxy /api → backend
+└── .github/workflows/deploy.yml     # CI/CD (2 deploys FTP)
 ```
+
+> **Nota**: desde esta versión, `backend/index.php` está en la raíz de `backend/`
+> (no más `backend/public/`). Esto facilita el deploy FTP directo a `public_html/`.
+> El `.htaccess` en la raíz bloquea el acceso a `.env`, `src/`, `database/`, `storage/`.
 
 ---
 
-## 🚀 Setup paso a paso
+## 🚀 Setup local (desarrollo con XAMPP)
 
 ### 1. Base de datos
-
-Conectate a MySQL (XAMPP) y ejecutá:
 
 ```bash
 mysql -u root -p micasajems < backend/database/migrations/001_actividades.sql
@@ -57,9 +81,6 @@ mysql -u root -p micasajems < backend/database/migrations/003_suscripciones.sql
 mysql -u root -p micasajems < backend/database/migrations/004_seed_ejemplo.sql
 ```
 
-> Si tu BD ya existe con el mismo nombre, estos scripts son **idempotentes**
-> (usan `CREATE TABLE IF NOT EXISTS`).
-
 ### 2. Configurar credenciales
 
 ```bash
@@ -67,88 +88,132 @@ cd backend
 cp .env.example .env
 ```
 
-Editá `backend/.env` y completá:
-- `DB_HOST`, `DB_NAME`, `DB_USER`, `DB_PASS`
-- `SENDPULSE_API_ID` y `SENDPULSE_API_SECRET` (desde SendPulse → Settings → API)
-- `PUBLIC_SENDPULSE_ACCOUNT_ID` → no, ese va en el `.env` de Astro (paso 4)
+Editar `backend/.env` con tus valores de BD local.
 
 Para Astro:
 
 ```bash
-# Raíz del proyecto
 cp .env.example .env
 ```
 
-Editá `.env` y completá:
-- `PUBLIC_API_URL` → `http://localhost/micasajems/backend/public` (en producción, tu dominio)
-- `PUBLIC_SENDPULSE_ACCOUNT_ID` → account ID de Web Push de SendPulse
+Por defecto apunta a `http://localhost/micasajems/backend`.
 
 ### 3. Cambiar la contraseña del admin
 
-Por defecto, las migraciones insertan un usuario `admin` con la clave `Jems2026!`.
-**Cambiala apenas entres al panel.**
-
-Desde el panel: `/admin/login` → Dashboard → (próximamente: gestión de usuarios).
-
-Por línea de comandos:
+Por defecto: `admin` / `Jems2026!` (cambiar inmediatamente).
 
 ```bash
 php -r "echo password_hash('TuNuevaClaveSegura', PASSWORD_DEFAULT);"
 ```
 
 ```sql
-UPDATE admin_users
-SET password_hash = '<hash_generado>'
-WHERE username = 'admin';
+UPDATE admin_users SET password_hash = '<hash>' WHERE username = 'admin';
 ```
 
-### 4. Verificar que el backend funciona
+### 4. Probar backend
 
 Con XAMPP corriendo:
 
 ```
-http://localhost/micasajems/backend/public/api/actividades
+http://localhost/micasajems/backend/api/actividades
+http://localhost/micasajems/backend/admin/login
 ```
 
-Debería devolver un JSON con `ok: true` y la lista de actividades.
-
-Si no tenés XAMPP, podés usar el servidor embebido de PHP:
-
-```bash
-cd backend
-php -S 127.0.0.1:8765 -t public public/index.php
-```
-
-### 5. Panel admin
-
-```
-http://localhost/micasajems/backend/public/admin/login
-```
-
-Login con `admin` / `Jems2026!` (cambiar después).
-
-### 6. Frontend Astro
+### 5. Probar frontend
 
 ```bash
 npm install
-npm run dev       # desarrollo
-npm run build     # producción
+npm run dev
 ```
 
-El componente `Actividades.astro` se incluyó automáticamente en `index.astro`
-(sección "Actividades" con resumen semanal + calendario + botón push).
+Astro levanta en `http://localhost:4321/`. El proxy reenvía:
+- `/api/*` → `http://localhost/micasajems/backend/api/*`
+- `/admin/*` → `http://localhost/micasajems/backend/admin/*`
 
-Para reusarlo en otra página:
+---
 
-```astro
----
-import Actividades from "../components/Actividades.astro";
----
-<Actividades
-  mostrarCalendario={true}
-  mostrarResumen={true}
-  mostrarBotonPush={true}
-/>
+## 🚀 Despliegue en producción
+
+### Estructura en el VPS (Hestia)
+
+```
+/home/<user>/web/
+├── micasajems.com/
+│   └── public_html/                ← Astro build (FTP deploy 1)
+└── admin.micasajems.com/
+    └── public_html/                ← Backend PHP (FTP deploy 2)
+        ├── index.php
+        ├── .htaccess
+        ├── .env                    ← generado por Actions
+        ├── src/
+        ├── database/
+        └── storage/
+```
+
+### Setup inicial (una sola vez)
+
+1. **En Hestia CPanel**:
+   - Crear el dominio `micasajems.com` (ya debe existir)
+   - Crear el subdominio `admin.micasajems.com`
+   - Crear un usuario FTP específico para `admin.micasajems.com`
+   - Apuntar DNS de `admin.micasajems.com` al VPS
+   - Activar HTTPS (Let's Encrypt) en ambos
+
+2. **Subir el backend manualmente la primera vez**:
+   - Conectar por SFTP con el usuario de `admin.micasajems.com`
+   - Subir todo el contenido de `backend/` excepto `.env`
+   - Crear manualmente `backend/.env` con los valores de producción
+   - `chmod 640 .env`
+
+3. **Correr las migraciones SQL**:
+   ```bash
+   cd /home/<user>/web/admin.micasajems.com/public_html
+   mysql -u<db_user> -p<db_pass> micasajems < database/migrations/001_actividades.sql
+   mysql -u<db_user> -p<db_pass> micasajems < database/migrations/002_admin_users.sql
+   mysql -u<db_user> -p<db_pass> micasajems < database/migrations/003_suscripciones.sql
+   ```
+
+4. **Cambiar la clave del admin** (insertar nuevo hash en BD)
+
+5. **Limpiar WordPress** si quedó algo en `public_html/` de `micasajems.com`
+
+### Configurar GitHub Actions
+
+Ir a **GitHub → Settings → Secrets and variables → Actions** y agregar:
+
+| Secret | Descripción |
+|---|---|
+| `SSH_HOST` | Host FTP del frontend (micasajems.com) |
+| `SSH_USER` | Usuario FTP del frontend |
+| `SSH_PASSWORD` | Password FTP del frontend |
+| `ADMIN_SSH_HOST` | Host FTP del admin (admin.micasajems.com) |
+| `ADMIN_SSH_USER` | Usuario FTP del admin |
+| `ADMIN_SSH_PASSWORD` | Password FTP del admin |
+| `DB_HOST` | Host MySQL (generalmente `localhost`) |
+| `DB_PORT` | Puerto MySQL (default `3306`) |
+| `DB_NAME` | Nombre de la BD |
+| `DB_USER` | Usuario de la BD |
+| `DB_PASS` | Password de la BD |
+| `SENDPULSE_API_ID` | API ID de SendPulse |
+| `SENDPULSE_API_SECRET` | API Secret de SendPulse |
+
+> **Nota**: el action usa **FTP** (puerto 21) bajo el nombre "SSH" por compatibilidad.
+> Si tu servidor requiere **FTPS** (FTP sobre TLS), ver "FTPS" más abajo.
+
+### FTPS (FTP sobre TLS)
+
+Si tu servidor requiere conexión segura (FTPS), cambiá la action a:
+
+```yaml
+- uses: SamKirkland/FTP-Deploy-Action@v4.3.0
+  with:
+    protocol: ftps
+    server: ${{ secrets.SSH_HOST }}
+    ...
+```
+https://micasajems.com/                      → sitio público
+https://admin.micasajems.com/api/actividades → JSON
+https://admin.micasajems.com/admin/login     → panel admin
 ```
 
 ---
@@ -159,45 +224,40 @@ import Actividades from "../components/Actividades.astro";
 
 | Variable | Descripción |
 |---|---|
-| `DB_HOST` | Host MySQL (default `127.0.0.1`) |
-| `DB_PORT` | Puerto (default `3306`) |
-| `DB_NAME` | Nombre de la base de datos |
+| `DB_HOST` | Host MySQL |
+| `DB_PORT` | Puerto MySQL (default `3306`) |
+| `DB_NAME` | Nombre de la BD |
 | `DB_USER` / `DB_PASS` | Credenciales |
 | `DB_CHARSET` | Charset (default `utf8mb4`) |
-| `APP_ENV` | `development` o `production` |
+| `APP_ENV` | `production` o `development` |
 | `APP_DEBUG` | `true` muestra errores detallados |
-| `APP_URL` | URL pública del sitio |
-| `API_BASE_URL` | URL del backend (para CORS) |
-| `ADMIN_URL` | URL del panel admin |
+| `APP_URL` | URL del admin (ej: `https://admin.micasajems.com`) |
+| `API_BASE_URL` | URL del API (ej: `https://admin.micasajems.com/api`) |
+| `ADMIN_URL` | URL del panel (ej: `https://admin.micasajems.com`) |
 | `SESSION_NAME` | Nombre de la cookie de sesión |
-| `SESSION_LIFETIME` | Duración de la sesión en segundos (default 7200) |
-| `ADMIN_DEFAULT_USER` | Solo para seed (no se usa en runtime) |
-| `ADMIN_DEFAULT_PASS` | Solo para seed |
-| `ADMIN_DEFAULT_EMAIL` | Solo para seed |
+| `SESSION_LIFETIME` | Duración de la sesión en segundos |
 | `SENDPULSE_API_URL` | Default `https://api.sendpulse.com` |
 | `SENDPULSE_API_ID` | API ID de SendPulse |
 | `SENDPULSE_API_SECRET` | API Secret de SendPulse |
-| `SENDPULSE_PUSH_WEBHOOK_SECRET` | Opcional, para validar webhooks |
 
-### `.env` (raíz del proyecto Astro)
+### `.env` (raíz Astro)
 
 | Variable | Descripción |
 |---|---|
-| `PUBLIC_API_URL` | URL del backend (debe coincidir con `API_BASE_URL`) |
+| `PUBLIC_API_URL` | URL del backend. En dev: `http://localhost/micasajems/backend`. En prod: `https://admin.micasajems.com/api` |
+| `PUBLIC_ADMIN_URL` | URL del admin. Default: `https://admin.micasajems.com` |
 | `PUBLIC_SENDPULSE_ACCOUNT_ID` | Account ID público de Web Push de SendPulse |
-
-> Solo se exponen al cliente las variables con prefijo `PUBLIC_*`.
 
 ---
 
 ## 🛣️ Endpoints API
 
-### Públicos
+### Públicos (sin auth)
 
 | Método | Endpoint | Descripción |
 |---|---|---|
-| `GET` | `/api/actividades` | Lista todas. Filtros: `?desde=YYYY-MM-DD&hasta=YYYY-MM-DD&categoria=culto` |
-| `GET` | `/api/actividades?semana=YYYY-MM-DD` | Resumen semanal (7 días desde la fecha) |
+| `GET` | `/api/actividades` | Lista todas. Filtros: `?desde=&hasta=&categoria=` |
+| `GET` | `/api/actividades?semana=YYYY-MM-DD` | Resumen semanal |
 | `GET` | `/api/actividades/{id}` | Detalle de una actividad |
 | `POST` | `/api/suscripciones` | Registra log de suscripción push |
 
@@ -205,7 +265,7 @@ import Actividades from "../components/Actividades.astro";
 
 | Método | Endpoint | Descripción |
 |---|---|---|
-| `POST` | `/api/admin/auth` | Login (body: `username`, `password`) |
+| `POST` | `/api/admin/auth` | Login |
 | `GET` | `/api/admin/auth/me` | Datos del usuario actual |
 | `POST` | `/api/admin/auth/logout` | Cierra sesión |
 | `POST` | `/api/admin/actividades` | Crea actividad |
@@ -218,44 +278,21 @@ import Actividades from "../components/Actividades.astro";
 |---|---|
 | `/admin/login` | Formulario de login |
 | `/admin/dashboard` | Dashboard con KPIs |
-| `/admin/actividades` | Listado + edición rápida |
-| `/admin/actividades/nueva` | Formulario de alta |
-| `/admin/actividades/editar/{id}` | Formulario de edición |
-
----
-
-## 🗃️ Modelo de datos
-
-### `actividades`
-- `id`, `titulo`, `descripcion`, `lugar`, `fecha`, `hora_inicio`, `hora_fin`
-- `categoria` ∈ `{culto, estudio, evento, ministerio, social, otro}`
-- `destacado` (bool), `estado` ∈ `{programada, cancelada, realizada}`
-- `creado_por` (FK a `admin_users`), `created_at`, `updated_at`
-
-### `admin_users`
-- `id`, `username` (único), `email` (único), `password_hash`, `nombre`
-- `rol` ∈ `{admin, editor}`, `ultimo_acceso`, `activo`, `created_at`
-
-### `suscriptores_push`
-- `id`, `sendpulse_id`, `user_agent`, `ip`, `created_at`
-- Log mínimo. SendPulse es la fuente de verdad de la lista de suscriptores.
+| `/admin/actividades` | Listado |
+| `/admin/actividades/nueva` | Alta |
+| `/admin/actividades/editar/{id}` | Edición |
 
 ---
 
 ## 🔔 SendPulse — Web Push
 
 1. Crear cuenta en [sendpulse.com](https://sendpulse.com)
-2. Ir a **Web Push** → crear un nuevo sitio
-3. Configurar el dominio (en producción requiere HTTPS)
-4. Copiar el `account_id` (aparece en el snippet de instalación)
-5. Pegarlo en `.env` de Astro como `PUBLIC_SENDPULSE_ACCOUNT_ID`
+2. Ir a **Web Push** → crear un nuevo sitio para `micasajems.com`
+3. Copiar el `account_id` → pegarlo en `.env` Astro como `PUBLIC_SENDPULSE_ACCOUNT_ID`
+4. En producción, configurar HTTPS (ya hecho por Let's Encrypt en Hestia)
 
-El componente `BotonNotificaciones.astro`:
-- Carga el script oficial de SendPulse (`cdn.sendpulse.com/push/push.js`) solo cuando el usuario hace clic
-- Llama a `PushSubscriber(accountId).subscribe()`
-- Muestra mensajes de éxito/error
-
-Para enviar notificaciones: usar el panel de SendPulse → Web Push → New Campaign.
+El componente `BotonNotificaciones.astro` carga el script oficial de SendPulse
+solo cuando el usuario hace clic y llama a `PushSubscriber.subscribe()`.
 
 ---
 
@@ -269,141 +306,16 @@ Para enviar notificaciones: usar el panel de SendPulse → Web Push → New Camp
 
 ---
 
-## 📝 Notas
+## 📝 CORS
 
-- El backend está pensado para correr **bajo XAMPP** (`http://localhost/micasajems/backend/public/`)
-- En producción, ajustar `APP_URL`, `API_BASE_URL` y `ADMIN_URL` a tu dominio
-- HTTPS obligatorio en producción para Web Push
-- El panel admin usa Tailwind via CDN para mantenerlo simple y sin build step
-- CORS: el backend acepta cualquier origen en `HTTP_ORIGIN` (ajustar si es necesario)
+El backend (`admin.micasajems.com`) refleja el header `Access-Control-Allow-Origin`
+basado en `HTTP_ORIGIN`. Esto permite que `micasajems.com` consuma la API.
 
----
+Para mayor seguridad en producción, en `Response.php` podrías restringir a:
 
-## 🌐 Acceso al admin durante desarrollo
-
-Hay **3 formas** de acceder al panel admin:
-
-### Opción 1: vía proxy de Astro (recomendado)
-
-`astro.config.mjs` ya tiene configurado el proxy para `/admin` → backend PHP.
-
-Con XAMPP corriendo, simplemente:
-
-```bash
-npm run dev
-```
-
-Y abrir: **`http://localhost:4321/admin/login`**
-
-### Opción 2: directo desde XAMPP
-
-```
-http://localhost/micasajems/backend/public/admin/login
-```
-
-Útil si no querés levantar el dev server de Astro.
-
-### Opción 3: enlace discreto en el footer
-
-El componente `Footer.astro` ya tiene un ícono de candado (🔒) que abre
-`/admin/login` en pestaña nueva.
-
----
-
-## 🚀 Despliegue en producción
-
-### Estructura recomendada en el servidor
-
-```
-/home/user/micasajems.com/
-├── public_html/                 ← build de Astro (contenido de /dist)
-│   ├── index.html
-│   ├── _astro/
-│   └── ...
-├── api/                         ← backend PHP (renombrar "backend" → "api")
-│   ├── public/                  ← único directorio expuesto a la web
-│   │   ├── index.php
-│   │   └── .htaccess
-│   ├── src/
-│   ├── database/
-│   ├── .env
-│   └── ...
-```
-
-### Apache / Nginx
-
-Configurar el virtualhost para que:
-- `https://micasajems.com/` → sirva `/public_html/` (sitio estático)
-- `https://micasajems.com/admin/` → redirija al PHP (`/api/public/index.php`)
-- `https://micasajems.com/api/` → redirija al PHP
-
-#### Apache (vhost)
-
-```apache
-<VirtualHost *:443>
-    ServerName micasajems.com
-    DocumentRoot /home/user/micasajems.com/public_html
-
-    # Backend PHP para admin y API
-    Alias /admin /home/user/micasajems.com/api/public
-    Alias /api /home/user/micasajems.com/api/public
-
-    <Directory /home/user/micasajems.com/api/public>
-        AllowOverride All
-        Require all granted
-        FallbackResource /index.php
-    </Directory>
-
-    <Directory /home/user/micasajems.com/public_html>
-        AllowOverride None
-        Require all granted
-    </Directory>
-</VirtualHost>
-```
-
-El `.htaccess` de `backend/public/` ya está preparado para rutear tanto
-`/api/*` como `/admin/*` al `index.php` del backend.
-
-#### Nginx
-
-```nginx
-server {
-    listen 443 ssl;
-    server_name micasajems.com;
-    root /home/user/micasajems.com/public_html;
-    index index.html;
-
-    # Backend PHP
-    location ~ ^/(admin|api)/ {
-        root /home/user/micasajems.com/api/public;
-        try_files $uri $uri/ /index.php$is_args$args;
-        fastcgi_pass unix:/run/php/php-fpm.sock;
-        fastcgi_index index.php;
-        include fastcgi_params;
-        fastcgi_param SCRIPT_FILENAME $document_root/index.php;
-    }
+```php
+$allowed = ['https://micasajems.com', 'https://www.micasajems.com'];
+if (in_array($origin, $allowed, true)) {
+    header("Access-Control-Allow-Origin: {$origin}");
 }
 ```
-
-### Variables de entorno en producción
-
-Editar `.env` del backend:
-
-```env
-APP_ENV=production
-APP_DEBUG=false
-APP_URL=https://micasajems.com
-API_BASE_URL=https://micasajems.com/api
-ADMIN_URL=https://micasajems.com/admin
-```
-
-Y `.env` de la raíz (si seguís usando Astro como fuente de configuración):
-
-```env
-PUBLIC_API_URL=https://micasajems.com/api
-PUBLIC_SENDPULSE_ACCOUNT_ID=<tu_account_id>
-```
-
-> Si hosteás el frontend en **Vercel/Netlify/Cloudflare Pages**,
-> el proxy de Vite no aplica. En ese caso el frontend apunta directo a
-> `https://micasajems.com/api` y el backend se deploya aparte.

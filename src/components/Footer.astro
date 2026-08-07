@@ -2,6 +2,8 @@
 // src/components/Footer.astro
 const currentYear = new Date().getFullYear();
 
+const adminUrl = (import.meta.env.PUBLIC_ADMIN_URL ?? "https://admin.micasajems.com") as string;
+
 const horarios = [
   { dia: "Domingo", actividad: "Servicio Dominical", hora: "9:00 AM" },
   { dia: "Miércoles", actividad: "Estudio Bíblico", hora: "6:30 PM" },
@@ -108,7 +110,7 @@ const redes = [
       <div class="flex items-center gap-4">
         <p class="text-slate-600 text-[10px] uppercase tracking-widest">Obreros que usan bien la palabra de verdad</p>
         <a
-          href="/admin/login"
+          href={adminUrl}
           target="_blank"
           rel="noopener"
           title="Acceso administrativo"

@@ -6,6 +6,7 @@ interface Props {
 const { accountId } = Astro.props;
 const fallbackId = (import.meta.env.PUBLIC_SENDPULSE_ACCOUNT_ID ?? "") as string;
 const finalAccountId = accountId || fallbackId;
+const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
 ---
 
 <section class="rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#D4AF37]/10 via-[#101829] to-[#101829] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
@@ -36,7 +37,7 @@ const finalAccountId = accountId || fallbackId;
   </button>
 </section>
 
-<div id="push-status" class="hidden mt-3 text-sm"></div>
+<div id="push-status" class="hidden mt-3 text-sm" data-api-base={apiBase}></div>
 
 <script is:inline>
   (function () {
@@ -44,6 +45,7 @@ const finalAccountId = accountId || fallbackId;
     if (!btn) return;
     const status = document.getElementById("push-status");
     const accountId = btn.getAttribute("data-account-id") || "";
+    const apiBase = (status && status.getAttribute("data-api-base")) || "";
 
     btn.addEventListener("click", function () {
       if (!accountId) {
@@ -114,11 +116,13 @@ const finalAccountId = accountId || fallbackId;
     }
 
     function logSuscripcion() {
+      if (!apiBase) return;
       try {
-        fetch(window.location.origin + "/micasajems/backend/public/api/suscripciones", {
+        fetch(apiBase.replace(/\/$/, "") + "/suscripciones", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sendpulse_id: null }),
+          mode: "cors",
         });
       } catch (e) {
         console.warn("No se pudo loguear la suscripción:", e);

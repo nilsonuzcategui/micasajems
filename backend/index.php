@@ -5,11 +5,11 @@ use App\Bootstrap;
 use App\Router;
 use App\Routes;
 
-require_once __DIR__ . '/../src/Bootstrap.php';
-Bootstrap::init(__DIR__ . '/..');
+require_once __DIR__ . '/src/Bootstrap.php';
+Bootstrap::init(__DIR__);
 
 $scriptName = $_SERVER['SCRIPT_NAME'] ?? '';
-// Strip el directorio del script (ej: /micasajems/backend/public) del URI
+// Strip el directorio del script (ej: /admin) del URI
 $basePath = rtrim(str_replace('\\', '/', dirname($scriptName)), '/');
 $uri = $_SERVER['REQUEST_URI'] ?? '/';
 if ($basePath !== '' && strpos($uri, $basePath) === 0) {
