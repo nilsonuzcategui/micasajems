@@ -3,33 +3,58 @@
 # Script de setup inicial del backend en producción
 # Pegar completo en SSH al VPS después del primer deploy
 # =====================================================
-# Detecta automáticamente la ruta según tu usuario SSH.
+# Detecta automáticamente la ruta buscando en varios usuarios comunes.
 
 set -e
 
-# Detectar usuario actual y dominio admin
-CURRENT_USER=$(whoami)
 ADMIN_DOMAIN="admin.micasajems.com"
-WEB_ROOT="/home/${CURRENT_USER}/web/${ADMIN_DOMAIN}/public_html"
+
+# Si no se pasó WEB_ROOT, intentar autodetectar
+if [ -z "$WEB_ROOT" ]; then
+    CANDIDATE_USERS="admin $(whoami)"
+
+    # Buscar el dueño real del archivo .env que ya debería estar deployado
+    if [ -f "/etc/passwd" ]; then
+        CANDIDATE_USERS="$CANDIDATE_USERS $(awk -F: '$3 >= 1000 && $3 < 65534 {print $1}' /etc/passwd | grep -v nobody | head -20)"
+    fi
+
+    FOUND=""
+    for USER in $CANDIDATE_USERS; do
+        CAND="/home/${USER}/web/${ADMIN_DOMAIN}/public_html"
+        if [ -d "$CAND" ] && [ -f "${CAND}/index.php" ]; then
+            FOUND="$CAND"
+            break
+        fi
+    done
+
+    if [ -z "$FOUND" ]; then
+        # Último intento: buscar cualquier index.php bajo /home/*/web/*admin*
+        FOUND=$(find /home -path '*/web/*admin.micasajems.com/public_html/index.php' 2>/dev/null | head -1 | xargs -r dirname)
+    fi
+
+    if [ -z "$FOUND" ]; then
+        echo "ERROR: No se pudo autodetectar el web root"
+        echo ""
+        echo "Pasá la ruta manualmente:"
+        echo "  WEB_ROOT=/home/usuario/web/admin.micasajems.com/public_html bash setup.sh"
+        exit 1
+    fi
+
+    WEB_ROOT="$FOUND"
+fi
 
 echo "================================================"
 echo "JEMS Backend Setup"
 echo "================================================"
-echo "Usuario SSH: $CURRENT_USER"
+echo "Usuario SSH: $(whoami)"
 echo "Web root:    $WEB_ROOT"
 echo ""
 
 # 1. Verificar que estamos en el lugar correcto
 if [ ! -d "$WEB_ROOT" ]; then
     echo "ERROR: No se encontró $WEB_ROOT"
-    echo ""
-    echo "Verificá:"
-    echo "  - Que el subdominio admin.micasajems.com exista en Hestia"
-    echo "  - Que el primer deploy haya terminado"
-    echo "  - Que el usuario SSH sea el dueño del subdominio"
-    echo ""
-    echo "Si tu subdominio está en otra ruta, pasámela:"
-    echo "  WEB_ROOT=/ruta/custom bash setup.sh"
+    echo "Pasá la ruta manualmente:"
+    echo "  WEB_ROOT=/home/usuario/web/admin.micasajems.com/public_html bash setup.sh"
     exit 1
 fi
 
