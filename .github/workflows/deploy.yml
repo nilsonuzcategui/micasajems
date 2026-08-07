@@ -32,6 +32,12 @@ jobs:
             # 3. Construir el proyecto Astro
             # Esto genera los archivos finales en la carpeta 'dist'
             - name: Build Astro Project
+              env:
+                  # Variables públicas expuestas al cliente en el bundle
+                  PUBLIC_API_URL: https://admin.micasajems.com/api
+                  PUBLIC_ADMIN_URL: https://admin.micasajems.com
+                  # Acepta SENDPULSE_PUBLIC_ACCOUNT_ID; si no está, usa el API ID como fallback
+                  PUBLIC_SENDPULSE_ACCOUNT_ID: ${{ secrets.SENDPULSE_PUBLIC_ACCOUNT_ID || secrets.SENDPULSE_API_ID }}
               run: npm run build
 
             # =========================================================
@@ -75,6 +81,7 @@ jobs:
                   APP_URL=https://admin.micasajems.com
                   API_BASE_URL=https://admin.micasajems.com/api
                   ADMIN_URL=https://admin.micasajems.com
+                  FRONTEND_URL=https://micasajems.com
 
                   SESSION_NAME=jems_admin_session
                   SESSION_LIFETIME=7200
