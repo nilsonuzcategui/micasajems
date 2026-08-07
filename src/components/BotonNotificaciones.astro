@@ -9,18 +9,25 @@ const finalAccountId = accountId || fallbackId;
 const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
 ---
 
-<section class="rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#D4AF37]/10 via-[#101829] to-[#101829] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6">
+<section
+  class="rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#D4AF37]/10 via-[#101829] to-[#101829] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6"
+>
   <div class="shrink-0 w-16 h-16 rounded-2xl bg-[#D4AF37]/15 text-[#D4AF37] flex items-center justify-center">
     <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"></path>
+      <path
+        stroke-linecap="round"
+        stroke-linejoin="round"
+        stroke-width="2"
+        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+      ></path>
     </svg>
   </div>
 
   <div class="flex-1 text-center md:text-left">
     <h3 class="text-xl font-bold text-white">¿Querés recibir notificaciones y avisos de las actividades?</h3>
     <p class="text-sm text-slate-300 mt-1">
-      Te avisamos cada vez que publiquemos un culto, estudio bíblico o evento especial.
-      Activá las notificaciones push haciendo clic en el botón.
+      Te avisamos cada vez que publiquemos un culto, estudio bíblico o evento especial. Activá las notificaciones push
+      haciendo clic en el botón.
     </p>
   </div>
 
@@ -28,7 +35,7 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
     id="btn-suscribir-push"
     type="button"
     data-account-id={finalAccountId}
-    class="shrink-0 px-6 py-3 rounded-full bg-[#D4AF37] text-[#101829] font-bold hover:scale-105 transition shadow-2xl flex items-center gap-2"
+    class="sp_notify_prompt shrink-0 px-6 py-3 rounded-full bg-[#D4AF37] text-[#101829] font-bold hover:scale-105 transition shadow-2xl flex items-center gap-2"
   >
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -71,12 +78,14 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
       s.async = true;
       s.onload = function () {
         btn.disabled = false;
-        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
+        btn.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
         suscribir(accountId);
       };
       s.onerror = function () {
         btn.disabled = false;
-        btn.innerHTML = '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
+        btn.innerHTML =
+          '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
         mostrarError("No se pudo cargar el script de SendPulse. Reintentá.");
       };
       document.head.appendChild(s);
@@ -85,7 +94,8 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
     function suscribir(accountId) {
       try {
         window.pushSubscriber = new window.PushSubscriber(accountId);
-        window.pushSubscriber.subscribe()
+        window.pushSubscriber
+          .subscribe()
           .then(function () {
             mostrarExito("¡Listo! Te suscribiste correctamente. Vas a recibir los avisos de actividades.");
             btn.innerHTML = "✓ Suscripto";
@@ -104,7 +114,8 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
     }
 
     function mostrarExito(msg) {
-      status.className = "mt-3 text-sm px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300";
+      status.className =
+        "mt-3 text-sm px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300";
       status.textContent = msg;
       status.classList.remove("hidden");
     }
