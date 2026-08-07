@@ -1,27 +1,23 @@
 # =====================================================
-# Backend PHP - admin.micasajems.com (o /admin en dev)
+# Backend PHP - admin.micasajems.com
 # =====================================================
+RewriteEngine On
 
-# Bloquear acceso directo a archivos sensibles (defensa en profundidad)
-<FilesMatch "^(\.env|\.env\.|composer\.|\.gitignore|\.ftp-deploy)">
-    Require all denied
-</FilesMatch>
+# Bloquear acceso directo a archivos sensibles
+RewriteRule ^\.env$ - [F,L]
+RewriteRule ^\.gitignore$ - [F,L]
+RewriteRule ^\.ftp-deploy - [F,L]
+RewriteRule ^(src|database|storage|vendor)/ - [F,L]
 
-<IfModule mod_rewrite.c>
-    RewriteEngine On
+# Routing: todo lo que no exista como archivo físico va al front controller
+RewriteCond %{REQUEST_FILENAME} !-f
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ index.php [L]
 
-    # Bloquear acceso a directorios sensibles via URL
-    RewriteRule ^(\.env|\.gitignore|\.ftp-deploy|src/|database/|storage/|vendor/) - [F,L]
-
-    # Routing de la app: todo va al front controller
-    RewriteCond %{REQUEST_FILENAME} !-f
-    RewriteCond %{REQUEST_FILENAME} !-d
-    RewriteRule ^(.*)$ index.php [L,QSA]
-</IfModule>
-
-# Headers de seguridad
+# Headers
 <IfModule mod_headers.c>
     Header set X-Content-Type-Options "nosniff"
     Header set X-Frame-Options "DENY"
-    Header set Referrer-Policy "strict-origin-when-cross-origin"
 </IfModule>
+
+Options -Indexes

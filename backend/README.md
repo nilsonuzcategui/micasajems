@@ -306,6 +306,40 @@ solo cuando el usuario hace clic y llama a `PushSubscriber.subscribe()`.
 
 ---
 
+## 🔍 Diagnóstico de errores en producción
+
+Si ves un 500 sin más info, hay 3 endpoints útiles para diagnosticar:
+
+| Endpoint | Qué prueba |
+|---|---|
+| `/info.php` | PHP standalone (no usa el framework). Si esto NO funciona, el problema es PHP/Apache, no tu código |
+| `/api/health` | BD + extensiones + storage. Si esto funciona pero el login no, el problema es de credenciales |
+| `storage/logs/php_errors.log` | Log completo de errores PHP (visible por FTP) |
+
+### Pasos para diagnosticar un 500
+
+1. **Visitá `/info.php`**: si responde con info de PHP, el problema es tu código/Config
+2. **Si `/info.php` también da 500**, el problema es PHP/Apache en el server:
+   - Verificá la versión de PHP seleccionada en Hestia (Web → admin.micasajems.com → PHP version)
+   - Verificá que PHP-FPM esté corriendo (SSH: `systemctl status php8.2-fpm` o similar)
+   - Verificá el log de Apache: `/var/log/apache2/domains/admin.micasajems.com.error.log`
+3. **Forzá una subida completa** si la action de GitHub tiene un state file cacheado:
+   - Conectate por SFTP al server y borrá `.ftp-deploy-state-backend` en `public_html/`
+   - Hacé un nuevo push
+
+### Forzar debug en producción
+
+Si todo funciona pero necesitás ver el error exacto, editá `.env` en el server (por SFTP o SSH):
+
+```env
+APP_DEBUG=true
+APP_ENV=development
+```
+
+Después de ver el error, volvé a `false` / `production`.
+
+---
+
 ## 📝 CORS
 
 El backend (`admin.micasajems.com`) refleja el header `Access-Control-Allow-Origin`
