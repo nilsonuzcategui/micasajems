@@ -5,6 +5,7 @@ namespace App;
 
 use App\Controllers\ActividadController;
 use App\Controllers\AuthController;
+use App\Controllers\HealthController;
 use App\Controllers\SuscripcionController;
 use App\Middleware\AuthMiddleware;
 
@@ -15,6 +16,10 @@ final class Routes
         $auth = new AuthController();
         $act = new ActividadController();
         $sub = new SuscripcionController();
+        $health = new HealthController();
+
+        // ============ HEALTH CHECK ============
+        $router->get('/api/health', [$health, 'check']);
 
         // ============ API PÚBLICA ============
         $router->get('/api/actividades', [$act, 'index']);

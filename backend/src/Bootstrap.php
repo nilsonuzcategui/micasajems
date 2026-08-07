@@ -10,10 +10,12 @@ final class Bootstrap
         self::defineConstants($rootDir);
         require_once APP_SRC . '/polyfill.php';
         require_once APP_SRC . '/Config.php';
+        self::ensureStorageDirectories();
         self::loadEnv($rootDir);
         self::configureSession();
         self::configureErrors();
         self::setHeaders();
+        self::registerErrorHandler();
         self::autoload();
     }
 
@@ -29,6 +31,15 @@ final class Bootstrap
             define('APP_STORAGE', APP_ROOT . '/storage');
         }
         date_default_timezone_set('America/Caracas');
+    }
+
+    private static function ensureStorageDirectories(): void
+    {
+        foreach ([APP_STORAGE, APP_STORAGE . '/logs', APP_STORAGE . '/cache'] as $dir) {
+            if (!is_dir($dir)) {
+                @mkdir($dir, 0755, true);
+            }
+        }
     }
 
     private static function loadEnv(string $rootDir): void
@@ -68,6 +79,72 @@ final class Bootstrap
         header('X-Content-Type-Options: nosniff');
         header('X-Frame-Options: DENY');
         header('Referrer-Policy: strict-origin-when-cross-origin');
+    }
+
+    private static function registerErrorHandler(): void
+    {
+        set_exception_handler([self::class, 'handleException']);
+    }
+
+    public static function handleException(\Throwable $e): void
+    {
+        $debug = Config::getBool('APP_DEBUG', false);
+
+        // Log siempre
+        $logFile = APP_STORAGE . '/logs/php_errors.log';
+        $message = sprintf(
+            "[%s] Uncaught %s: %s\n  at %s:%d\n  trace:\n%s\n\n",
+            date('Y-m-d H:i:s'),
+            get_class($e),
+            $e->getMessage(),
+            $e->getFile(),
+            $e->getLine(),
+            $e->getTraceAsString()
+        );
+        @file_put_contents($logFile, $message, FILE_APPEND);
+
+        // Si headers ya se enviaron (estamos renderizando HTML), no podemos responder JSON
+        if (headers_sent()) {
+            if (!Config::getBool('APP_DEBUG', false)) {
+                echo '<!doctype html><meta charset="utf-8"><title>Error</title><h1>Error interno del servidor</h1>';
+            } else {
+                echo '<pre>' . htmlspecialchars($message) . '</pre>';
+            }
+            exit(1);
+        }
+
+        // Si la ruta parece API, responder JSON
+        $uri = $_SERVER['REQUEST_URI'] ?? '/';
+        $isApi = strpos($uri, '/api/') === 0;
+        $isAdminApi = strpos($uri, '/api/admin/') !== false;
+
+        if ($isApi) {
+            http_response_code(500);
+            header('Content-Type: application/json; charset=utf-8');
+            $payload = ['ok' => false, 'error' => 'Error interno del servidor'];
+            if ($debug) {
+                $payload['debug'] = [
+                    'type' => get_class($e),
+                    'message' => $e->getMessage(),
+                    'file' => $e->getFile(),
+                    'line' => $e->getLine(),
+                ];
+            }
+            echo json_encode($payload, JSON_UNESCAPED_UNICODE);
+            exit;
+        }
+
+        // Para rutas HTML, mostrar error genérico
+        http_response_code(500);
+        if ($debug) {
+            echo '<!doctype html><meta charset="utf-8"><title>Error</title>'
+                . '<h1>Error interno</h1><pre>' . htmlspecialchars($message) . '</pre>';
+        } else {
+            echo '<!doctype html><meta charset="utf-8"><title>Error</title>'
+                . '<h1>Error interno del servidor</h1>'
+                . '<p>Revisá los logs en <code>storage/logs/php_errors.log</code></p>';
+        }
+        exit;
     }
 
     private static function autoload(): void
