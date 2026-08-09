@@ -2,7 +2,6 @@
 interface Props {
   accountId?: string;
 }
-// testing nilson
 
 const { accountId } = Astro.props;
 const fallbackId = (import.meta.env.PUBLIC_SENDPULSE_ACCOUNT_ID ?? "") as string;
@@ -11,6 +10,7 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
 ---
 
 <section
+  id="seccion-push"
   class="rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#D4AF37]/10 via-[#101829] to-[#101829] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6"
 >
   <div class="shrink-0 w-16 h-16 rounded-2xl bg-[#D4AF37]/15 text-[#D4AF37] flex items-center justify-center">
@@ -36,7 +36,7 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
     id="btn-suscribir-push"
     type="button"
     data-account-id={finalAccountId}
-    class="sp_notify_prompt shrink-0 px-6 py-3 rounded-full bg-[#D4AF37] text-[#101829] font-bold hover:scale-105 transition shadow-2xl flex items-center gap-2"
+    class="shrink-0 px-6 py-3 rounded-full bg-[#D4AF37] text-[#101829] font-bold hover:scale-105 transition shadow-2xl flex items-center gap-2"
   >
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
@@ -55,6 +55,12 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
     const accountId = btn.getAttribute("data-account-id") || "";
     const apiBase = (status && status.getAttribute("data-api-base")) || "";
 
+    // URLs del SDK de SendPulse, en orden de preferencia
+    const SENDPULSE_SCRIPT_URLS = [
+      "https://login.sendpulse.com/push/push.js",
+      "https://cdn.sendpulse.com/push/push.js",
+    ];
+
     btn.addEventListener("click", function () {
       if (!accountId) {
         mostrarError("El account_id de SendPulse no está configurado. Revisá las variables de entorno.");
@@ -64,36 +70,48 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
         mostrarError("Tu navegador no soporta notificaciones push. Probá Chrome, Edge o Firefox.");
         return;
       }
-      cargarScriptSendPulse(accountId);
+      cargarScriptSendPulse(0);
     });
 
-    function cargarScriptSendPulse(accountId) {
+    function cargarScriptSendPulse(intento) {
       if (window.PushSubscriber) {
         suscribir(accountId);
         return;
       }
+      if (intento >= SENDPULSE_SCRIPT_URLS.length) {
+        mostrarError("No se pudo cargar el SDK de SendPulse desde ningún CDN. Verificá tu conexión o que el sitio esté registrado en SendPulse.");
+        btn.disabled = false;
+        btn.innerHTML = svgBoton();
+        return;
+      }
+      const url = SENDPULSE_SCRIPT_URLS[intento];
       btn.disabled = true;
       btn.innerHTML = "Cargando...";
+      console.log("[SendPulse] intentando", url);
       const s = document.createElement("script");
-      s.src = "https://cdn.sendpulse.com/push/push.js";
+      s.src = url;
       s.async = true;
+      s.crossOrigin = "anonymous";
       s.onload = function () {
+        console.log("[SendPulse] script cargado desde", url);
         btn.disabled = false;
-        btn.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
+        btn.innerHTML = svgBoton();
         suscribir(accountId);
       };
       s.onerror = function () {
-        btn.disabled = false;
-        btn.innerHTML =
-          '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
-        mostrarError("No se pudo cargar el script de SendPulse. Reintentá.");
+        console.warn("[SendPulse] falló", url);
+        if (s.parentNode) s.parentNode.removeChild(s);
+        cargarScriptSendPulse(intento + 1);
       };
       document.head.appendChild(s);
     }
 
     function suscribir(accountId) {
       try {
+        if (typeof window.PushSubscriber !== "function") {
+          mostrarError("El SDK de SendPulse no se inicializó correctamente. Reintentá.");
+          return;
+        }
         window.pushSubscriber = new window.PushSubscriber(accountId);
         window.pushSubscriber
           .subscribe()
@@ -105,13 +123,18 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
             logSuscripcion();
           })
           .catch(function (err) {
-            console.error(err);
-            mostrarError("No se pudo completar la suscripción. Probá de nuevo o revisá los permisos del navegador.");
+            console.error("[SendPulse] subscribe error", err);
+            const msg = err && err.message ? err.message : "desconocido";
+            mostrarError("No se pudo completar la suscripción (" + msg + "). Probá de nuevo o revisá los permisos del navegador.");
           });
       } catch (e) {
-        console.error(e);
-        mostrarError("Error inesperado: " + e.message);
+        console.error("[SendPulse] init error", e);
+        mostrarError("Error inesperado: " + (e.message || "sin detalle"));
       }
+    }
+
+    function svgBoton() {
+      return '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
     }
 
     function mostrarExito(msg) {
@@ -130,7 +153,8 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
     function logSuscripcion() {
       if (!apiBase) return;
       try {
-        fetch(apiBase.replace(/\/$/, "") + "/suscripciones", {
+        const base = apiBase.replace(/\/$/, "");
+        fetch(base + "/suscripciones", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({ sendpulse_id: null }),
