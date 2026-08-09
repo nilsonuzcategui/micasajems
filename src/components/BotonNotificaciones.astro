@@ -2,6 +2,7 @@
 interface Props {
   accountId?: string;
 }
+// testing nilson
 
 const { accountId } = Astro.props;
 const fallbackId = (import.meta.env.PUBLIC_SENDPULSE_ACCOUNT_ID ?? "") as string;
