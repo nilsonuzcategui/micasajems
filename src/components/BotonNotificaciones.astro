@@ -91,7 +91,7 @@ const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
       const s = document.createElement("script");
       s.src = url;
       s.async = true;
-      s.crossOrigin = "anonymous";
+      // NO usamos crossOrigin para evitar la verificación CORS en el script tag
       s.onload = function () {
         console.log("[SendPulse] script cargado desde", url);
         btn.disabled = false;
