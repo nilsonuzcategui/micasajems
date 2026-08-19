@@ -1,17 +1,11 @@
 ---
-interface Props {
-  sendpulseAccountId?: string;
-}
-
-const { sendpulseAccountId } = Astro.props;
-
-const fallbackSpId = (import.meta.env.PUBLIC_SENDPULSE_ACCOUNT_ID ?? "") as string;
-const finalSpId = (sendpulseAccountId || fallbackSpId).trim();
-
-const vapidKey = (import.meta.env.PUBLIC_VAPID_KEY ?? "") as string;
-const apiBase = (import.meta.env.PUBLIC_API_URL ?? "") as string;
-
-const useSendPulse = finalSpId !== "";
+// Botón de notificaciones.
+// SendPulse hace todo: el script per-site de <head> define window.PushSubscriber.
+// Al hacer clic, invocamos su método subscribe() — no cargamos nada externo.
+// Si el script de SendPulse no está disponible (por ej. en localhost sin script cargado),
+// mostramos un mensaje claro.
+const sendpulseAccountId = ((import.meta.env.PUBLIC_SENDPULSE_ACCOUNT_ID ?? "") as string).trim();
+const apiBase = ((import.meta.env.PUBLIC_API_URL ?? "") as string).trim();
 ---
 
 <section
@@ -40,10 +34,8 @@ const useSendPulse = finalSpId !== "";
   <button
     id="btn-suscribir-push"
     type="button"
-    data-vapid-key={vapidKey}
+    data-sp-account-id={sendpulseAccountId}
     data-api-base={apiBase}
-    data-sp-account-id={finalSpId}
-    data-use-sendpulse={useSendPulse ? "1" : "0"}
     class="shrink-0 px-6 py-3 rounded-full bg-[#D4AF37] text-[#101829] font-bold hover:scale-105 transition shadow-2xl flex items-center gap-2"
   >
     <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -61,16 +53,8 @@ const useSendPulse = finalSpId !== "";
     if (!btn) return;
     const status = document.getElementById("push-status");
 
-    const vapidKey = btn.getAttribute("data-vapid-key") || "";
-    const apiBase = btn.getAttribute("data-api-base") || "";
     const spAccountId = btn.getAttribute("data-sp-account-id") || "";
-    const useSendPulse = btn.getAttribute("data-use-sendpulse") === "1";
-
-    // URLs del SDK de SendPulse en orden de preferencia
-    const SENDPULSE_SCRIPT_URLS = [
-      "https://cdn.sendpulse.com/push/push.js",
-      "https://login.sendpulse.com/push/push.js",
-    ];
+    const apiBase = btn.getAttribute("data-api-base") || "";
 
     btn.addEventListener("click", function () {
       if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
@@ -85,177 +69,105 @@ const useSendPulse = finalSpId !== "";
       btn.disabled = true;
       btn.innerHTML = "Cargando...";
 
-      if (useSendPulse) {
-        intentarSendPulse(0);
-      } else {
-        suscribirVAPID();
-      }
+      // Esperar a que el script per-site de SendPulse haya terminado de inicializar
+      esperarSendPulseListo(0);
     });
 
-    // ---------- SendPulse SDK ----------
-    function intentarSendPulse(intento) {
-      if (window.PushSubscriber) {
+    function esperarSendPulseListo(intento) {
+      if (typeof window.PushSubscriber === "function") {
         suscribirSendPulse();
         return;
       }
-      if (intento >= SENDPULSE_SCRIPT_URLS.length) {
-        console.warn("[Push] SendPulse SDK no disponible, cayendo a VAPID nativo");
-        suscribirVAPID();
+      if (intento >= 40) {
+        // ~10 segundos (40 * 250ms)
+        mostrarError(
+          "SendPulse no terminó de inicializar. Verificá que el script esté correctamente embebido en <head> y que la web esté registrada en sendpulse.com."
+        );
+        resetBtn();
         return;
       }
-      const url = SENDPULSE_SCRIPT_URLS[intento];
-      console.log("[Push] intentando SendPulse SDK:", url);
-      const s = document.createElement("script");
-      s.src = url;
-      s.async = true;
-      s.onload = function () {
-        console.log("[Push] SendPulse script cargado desde", url);
-        // Damos un tick para que el script defina window.PushSubscriber
-        setTimeout(function () {
-          if (typeof window.PushSubscriber === "function") {
-            suscribirSendPulse();
-          } else {
-            console.warn("[Push] Script cargado pero PushSubscriber no definido, cayendo a VAPID");
-            suscribirVAPID();
-          }
-        }, 100);
-      };
-      s.onerror = function () {
-        console.warn("[Push] falló carga desde", url);
-        if (s.parentNode) s.parentNode.removeChild(s);
-        intentarSendPulse(intento + 1);
-      };
-      document.head.appendChild(s);
+      setTimeout(function () {
+        esperarSendPulseListo(intento + 1);
+      }, 250);
     }
 
     function suscribirSendPulse() {
       try {
-        if (typeof window.PushSubscriber !== "function") {
-          console.warn("[Push] PushSubscriber no es función, cayendo a VAPID");
-          suscribirVAPID();
+        if (!spAccountId) {
+          mostrarError(
+            "Falta PUBLIC_SENDPULSE_ACCOUNT_ID. Pedile al administrador que lo configure."
+          );
+          resetBtn();
           return;
         }
-        window.pushSubscriber = new window.PushSubscriber(spAccountId);
-        window.pushSubscriber
-          .subscribe()
+        const subscriber = new window.PushSubscriber(spAccountId);
+        // El SDK expone subscribe(); en algunos builds también showPrompt().
+        const metodo = typeof subscriber.subscribe === "function" ? "subscribe" : null;
+        const alt = typeof subscriber.showSubscriptionPrompt === "function"
+          ? subscriber.showSubscriptionPrompt
+          : null;
+
+        if (!metodo && !alt) {
+          mostrarError(
+            "El SDK de SendPulse cargó pero no expone el método de suscripción. Contactá al administrador."
+          );
+          resetBtn();
+          return;
+        }
+
+        const promise = (metodo ? subscriber[metodo]() : subscriber.showSubscriptionPrompt());
+
+        Promise.resolve(promise)
           .then(function () {
             btn.innerHTML = svgCheck();
             btn.classList.add("opacity-60", "cursor-default");
             mostrarExito(
-              "¡Listo! Te suscribiste correctamente vía SendPulse. Vas a recibir los avisos de actividades."
+              "¡Listo! Te suscribiste correctamente. Vas a recibir los avisos de actividades."
             );
-            logSuscripcion({ sendpulse_id: spAccountId });
+            logSuscripcionSendPulse();
           })
           .catch(function (err) {
             console.error("[Push] SendPulse subscribe error", err);
-            const msg = err && err.message ? err.message : "desconocido";
-            // Si SendPulse falla (dominio no registrado, error de cuenta, etc.),
-            // caemos automáticamente a VAPID para que igual reciba notificaciones.
-            mostrarAviso(
-              "SendPulse no aceptó la suscripción (" +
-                msg +
-                "), usando canal alternativo (Web Push nativo)."
+            const msg = (err && (err.message || err)) || "desconocido";
+            mostrarError(
+              "SendPulse rechazó la suscripción (" + msg + "). Si seguís con problemas, recargá la página o probá desde otro navegador."
             );
-            suscribirVAPID();
+            resetBtn();
           });
       } catch (e) {
-        console.error("[Push] SendPulse init error", e);
-        suscribirVAPID();
+        console.error("[Push] init error", e);
+        mostrarError("Error inesperado: " + (e && e.message ? e.message : "sin detalle"));
+        resetBtn();
       }
     }
 
-    // ---------- VAPID nativo (fallback y default si no hay SendPulse) ----------
-    async function suscribirVAPID() {
-      if (!vapidKey) {
-        mostrarError(
-          "No hay clave VAPID configurada (PUBLIC_VAPID_KEY) ni credenciales SendPulse válidas. Pedile al administrador que configure al menos una."
-        );
-        btn.disabled = false;
-        btn.innerHTML = svgBoton();
-        return;
-      }
-
+    function logSuscripcionSendPulse() {
+      if (!apiBase) return;
       try {
-        const reg = await navigator.serviceWorker.register("/sw-push.js");
-        console.log("[Push] SW registrado:", reg.scope);
-        await navigator.serviceWorker.ready;
-
-        const subscription = await reg.pushManager.subscribe({
-          userVisibleOnly: true,
-          applicationServerKey: urlBase64ToUint8Array(vapidKey),
-        });
-        console.log("[Push] VAPID suscrito:", subscription.endpoint);
-
-        const json = subscription.toJSON();
-        const res = await fetch(apiBase + "/suscripciones", {
+        fetch(apiBase.replace(/\/$/, "") + "/suscripciones", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
-            endpoint: json.endpoint,
-            keys: { p256dh: json.keys.p256dh, auth: json.keys.auth },
+            source: "sendpulse",
+            sendpulse_id: spAccountId || null,
             user_agent: navigator.userAgent,
-            source: "webpush",
           }),
         });
-
-        if (!res.ok) {
-          throw new Error("HTTP " + res.status);
-        }
-
-        btn.innerHTML = svgCheck();
-        btn.classList.add("opacity-60", "cursor-default");
-        mostrarExito(
-          "¡Listo! Te suscribiste correctamente. Vas a recibir los avisos de actividades."
-        );
-      } catch (err) {
-        console.error("[Push] VAPID error:", err);
-        btn.disabled = false;
-        btn.innerHTML = svgBoton();
-        let msg = err && err.message ? err.message : "desconocido";
-        if (err && err.name === "NotAllowedError") {
-          msg = "Permiso denegado. Habilitá las notificaciones en tu navegador.";
-        }
-        mostrarError("No se pudo completar la suscripción (" + msg + ").");
+      } catch (e) {
+        console.warn("[Push] No se pudo loguear la suscripción:", e);
       }
     }
 
-    // ---------- Helpers ----------
-    function urlBase64ToUint8Array(base64String) {
-      const padding = "=".repeat((4 - (base64String.length % 4)) % 4);
-      const base64 = (base64String + padding).replace(/-/g, "+").replace(/_/g, "/");
-      const raw = atob(base64);
-      const out = new Uint8Array(raw.length);
-      for (let i = 0; i < raw.length; i++) out[i] = raw.charCodeAt(i);
-      return out;
+    function resetBtn() {
+      btn.disabled = false;
+      btn.innerHTML = svgBoton();
     }
 
     function svgBoton() {
       return '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
     }
-
     function svgCheck() {
       return '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Suscripto';
-    }
-
-    function mostrarExito(msg) {
-      setStatus(
-        "mt-3 text-sm px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300",
-        msg
-      );
-    }
-
-    function mostrarAviso(msg) {
-      setStatus(
-        "mt-3 text-sm px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300",
-        msg
-      );
-    }
-
-    function mostrarError(msg) {
-      setStatus(
-        "mt-3 text-sm px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300",
-        msg
-      );
     }
 
     function setStatus(classes, msg) {
@@ -264,20 +176,11 @@ const useSendPulse = finalSpId !== "";
       status.textContent = msg;
       status.classList.remove("hidden");
     }
-
-    function logSuscripcion(extra) {
-      if (!apiBase) return;
-      try {
-        const base = apiBase.replace(/\/$/, "");
-        fetch(base + "/suscripciones", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(Object.assign({ source: "sendpulse" }, extra || {})),
-          mode: "cors",
-        });
-      } catch (e) {
-        console.warn("[Push] No se pudo loguear la suscripción:", e);
-      }
+    function mostrarExito(msg) {
+      setStatus("mt-3 text-sm px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300", msg);
+    }
+    function mostrarError(msg) {
+      setStatus("mt-3 text-sm px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300", msg);
     }
   })();
 </script>

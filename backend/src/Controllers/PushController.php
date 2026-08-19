@@ -6,13 +6,13 @@ namespace App\Controllers;
 use App\Config;
 use App\Database;
 use App\Response;
+use App\Services\SendPulseService;
 use App\WebPushClient;
 
 final class PushController
 {
     public function send(): void
     {
-        // Solo accesible desde admin
         $userId = $_SESSION['admin_user_id'] ?? null;
         if (!$userId) {
             Response::error('No autenticado', 401);
@@ -33,17 +33,52 @@ final class PushController
     }
 
     /**
-     * Envía una notificación a todos los suscriptores activos.
-     * Devuelve estadísticas de éxito/fallo.
+     * Envía una notificación push.
+     *
+     * Estrategia:
+     *  1) Si SendPulse está configurado → delega en SendPulse (gestiona suscriptores).
+     *  2) Si no, usa Web Push nativo (VAPID) sobre los registros de push_subscriptions.
      */
     public function broadcast(array $payload): array
+    {
+        $title = (string)($payload['title'] ?? 'Nueva actividad');
+        $body = (string)($payload['body'] ?? '');
+        $url = (string)($payload['url'] ?? '/');
+
+        // 1) SendPulse
+        if (SendPulseService::isConfigured()) {
+            try {
+                $res = SendPulseService::sendPush($title, $body, $url);
+                return [
+                    'channel' => 'sendpulse',
+                    'success' => $res['sent'] ? 1 : 0,
+                    'failed' => $res['sent'] ? 0 : 1,
+                    'campaign_id' => $res['campaign_id'],
+                ];
+            } catch (\Throwable $e) {
+                error_log('[Push] SendPulse falló: ' . $e->getMessage());
+                // Caemos al fallback VAPID si está disponible
+            }
+        }
+
+        // 2) Fallback Web Push nativo (VAPID)
+        return $this->broadcastVAPID($payload);
+    }
+
+    private function broadcastVAPID(array $payload): array
     {
         $vapidPublic = (string)Config::get('VAPID_PUBLIC_KEY', '');
         $vapidPrivate = (string)Config::get('VAPID_PRIVATE_KEY', '');
         $subject = (string)Config::get('VAPID_SUBJECT', 'mailto:admin@micasajems.com');
 
         if ($vapidPublic === '' || $vapidPrivate === '') {
-            return ['success' => 0, 'failed' => 0, 'error' => 'VAPID keys no configuradas'];
+            return [
+                'channel' => 'none',
+                'success' => 0,
+                'failed' => 0,
+                'total' => 0,
+                'error' => 'SendPulse no configurado y VAPID keys ausentes',
+            ];
         }
 
         try {
@@ -53,11 +88,22 @@ final class PushController
             );
             $subscriptions = $stmt->fetchAll();
         } catch (\Throwable $e) {
-            return ['success' => 0, 'failed' => 0, 'error' => 'Error de BD: ' . $e->getMessage()];
+            return [
+                'channel' => 'vapid',
+                'success' => 0,
+                'failed' => 0,
+                'error' => 'Error de BD: ' . $e->getMessage(),
+            ];
         }
 
         if (empty($subscriptions)) {
-            return ['success' => 0, 'failed' => 0, 'total' => 0, 'message' => 'No hay suscriptores'];
+            return [
+                'channel' => 'vapid',
+                'success' => 0,
+                'failed' => 0,
+                'total' => 0,
+                'message' => 'No hay suscriptores',
+            ];
         }
 
         $client = new WebPushClient($vapidPublic, $vapidPrivate, $subject);
@@ -79,19 +125,16 @@ final class PushController
 
             if ($result['success']) {
                 $success++;
-                // Resetear contador de fallos
                 $pdo->prepare('UPDATE push_subscriptions SET last_sent_at = NOW(), fail_count = 0 WHERE id = :id')
                     ->execute([':id' => $sub['id']]);
             } else {
                 $failed++;
                 $errors[] = ['id' => $sub['id'], 'status' => $result['status'], 'message' => $result['message']];
 
-                // Si la suscripción es inválida (404, 410), desactivarla
                 if (in_array($result['status'], [404, 410], true)) {
                     $pdo->prepare('UPDATE push_subscriptions SET activo = 0 WHERE id = :id')
                         ->execute([':id' => $sub['id']]);
                 } else {
-                    // Incrementar contador de fallos
                     $pdo->prepare('UPDATE push_subscriptions SET fail_count = fail_count + 1 WHERE id = :id')
                         ->execute([':id' => $sub['id']]);
                 }
@@ -99,6 +142,7 @@ final class PushController
         }
 
         return [
+            'channel' => 'vapid',
             'total' => count($subscriptions),
             'success' => $success,
             'failed' => $failed,

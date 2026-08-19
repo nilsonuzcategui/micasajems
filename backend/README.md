@@ -284,45 +284,78 @@ https://admin.micasajems.com/admin/login     → panel admin
 
 ---
 
-## 🔔 Notificaciones Push (SendPulse + Web Push nativo)
+## 🔔 Notificaciones Push (SendPulse)
 
-El componente `BotonNotificaciones.astro` usa un esquema **híbrido** para que
-siempre haya un canal funcionando:
+SendPulse se encarga de **todo el flujo**:
 
-1. **SendPulse SDK** (si está configurado) — carga el script oficial de SendPulse
-   y le pide al usuario permiso de notificaciones.
-2. **Web Push nativo (VAPID)** como fallback automático si SendPulse falla o no
-   está configurado. Este canal funciona sin terceros: las suscripciones se
-   guardan en la tabla `push_subscriptions` y el backend las entrega usando
-   `WebPushClient`.
+- **Suscripción** → el script per-site que ya está embebido en
+  `src/layouts/Layout.astro` (`web.webpushs.com/js/push/<id>_<rev>.js`)
+  muestra el prompt al visitante y guarda la suscripción en los servidores de
+  SendPulse.
+- **Envío** → el backend PHP llama a la API REST de SendPulse para crear y
+  disparar una campaña push contra todos los suscriptores del sitio.
 
-> Esto significa que las notificaciones **siempre funcionarán** aunque no hayas
-> completado la registración en SendPulse.
+El componente `BotonNotificaciones.astro` simplemente invoca el método
+`subscribe()` del `PushSubscriber` global que expone SendPulse. No carga
+scripts externos propios ni necesita servicio de terceros propio.
 
-### Configurar SendPulse (opcional, recomendado)
+### Variables de entorno necesarias
 
-1. Crear cuenta en [sendpulse.com](https://sendpulse.com).
-2. Ir a **Web Push** → crear un nuevo sitio para `micasajems.com` (y/o
-   `admin.micasajems.com`).
-3. Copiar el `account_id` → en `.env` de Astro (raíz):
-   ```
-   PUBLIC_SENDPULSE_ACCOUNT_ID=<tu_account_id>
-   ```
-4. Verificá que el dominio esté registrado correctamente en SendPulse (es un
-   requisito del propio SendPulse; sin esto, el SDK cargará pero no inicializará
-   y el frontend caerá automáticamente al fallback VAPID).
-5. HTTPS obligatorio (ya activo por Let's Encrypt en Hestia).
+**`backend/.env`** (producción, vía GitHub Secrets):
 
-### Disparar notificaciones al crear/editar una actividad
+| Variable | Origen |
+|---|---|
+| `SENDPULSE_API_ID` | SendPulse → Cuenta → Configuración de la API |
+| `SENDPULSE_API_SECRET` | Igual que arriba |
+| `SENDPULSE_PUSH_WEBSITE_ID` | SendPulse → Push → Sitios web → tu sitio (ID numérico) |
 
-En el formulario de actividad del admin hay un checkbox **"Notificar a los
-suscriptores push"**. Marcándolo, al guardar la actividad se envía
-automáticamente una notificación a todos los suscriptores con el título, lugar y
-fecha del evento. El listado muestra estadísticas del envío
-(`total / ok / fallidas`).
+**`.env` raíz Astro** (frontend):
 
-Si querés usar SendPulse como canal de envío masivo en lugar del VAPID local,
-hay que llamar a la API de SendPulse; eso queda como evolución futura.
+| Variable | Origen |
+|---|---|
+| `PUBLIC_SENDPULSE_ACCOUNT_ID` | ID que aparece en el script per-site de SendPulse (p.ej. `f25a75e12bdc9aaf6fe59d4a6766df83`). |
+
+### Disparar notificaciones desde el admin
+
+En el formulario de actividad hay un checkbox **"Notificar a los suscriptores
+push"**. Al guardar con ese checkbox marcado, el backend llama a
+`SendPulseService::sendPush()` que:
+
+1. Obtiene un access token (OAuth2 client_credentials).
+2. Crea una campaña push en SendPulse con título, cuerpo y link.
+3. La envía inmediatamente (`POST /push/campaigns/{id}/send`).
+
+El listado muestra estadísticas del envío.
+
+### Fallback VAPID (opcional)
+
+Si por algún motivo SendPulse no está configurado (faltan credenciales), el
+`PushController` cae automáticamente al envío vía Web Push nativo (VAPID) sobre
+los registros de la tabla `push_subscriptions`. Esta tabla se alimenta
+únicamente cuando alguien se suscribió por el canal VAPID, no por SendPulse;
+por lo que si vas 100% SendPulse, esta tabla quedará vacía y el fallback no
+tendrá a quién enviar.
+
+### Cómo configurar las credenciales paso a paso
+
+1. **API ID / Secret**:
+   - SendPulse → tu avatar (arriba a la derecha) → **Configuración de la cuenta** → pestaña **API**.
+   - Activala si está desactivada y copiá `API ID` y `API Secret`.
+
+2. **Website ID (Push)**:
+   - SendPulse → menú **Push** → **Sitios web** → tu sitio `micasajems.com`.
+   - En la URL de la página de tu sitio aparece un número: ese es el
+     `SENDPULSE_PUSH_WEBSITE_ID`.
+
+3. **Account ID del frontend**:
+   - En la misma página de tu sitio, pestaña **Integración del sitio web**, el
+     script per-site tiene la forma
+     `web.webpushs.com/js/push/<account_id>_<revision>.js`.
+   - Copiá el `<account_id>` (la parte antes del guión bajo) a
+     `PUBLIC_SENDPULSE_ACCOUNT_ID`.
+
+4. Subí todo a GitHub Secrets y hacé un push al repo para que el deploy use
+   las credenciales correctas.
 
 ---
 
