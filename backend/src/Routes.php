@@ -79,23 +79,59 @@ final class Routes
                 },
                 '/actividades/guardar' => [function (): void {
                     AuthMiddleware::require();
-                    AuthMiddleware::requireCsrf();
-                    $data = Request::all();
-                    $payload = [
-                        'titulo' => trim((string)($data['titulo'] ?? '')),
-                        'descripcion' => trim((string)($data['descripcion'] ?? '')) ?: null,
-                        'lugar' => trim((string)($data['lugar'] ?? '')),
-                        'fecha' => trim((string)($data['fecha'] ?? '')),
-                        'hora_inicio' => trim((string)($data['hora_inicio'] ?? '')),
-                        'hora_fin' => trim((string)($data['hora_fin'] ?? '')) ?: null,
-                        'categoria' => $data['categoria'] ?? 'culto',
-                        'destacado' => !empty($data['destacado']),
-                        'estado' => $data['estado'] ?? 'programada',
-                    ];
-
-                    if ($payload['titulo'] === '' || $payload['lugar'] === '' || $payload['fecha'] === '' || $payload['hora_inicio'] === '') {
-                        Response::redirect(View::adminUrl('actividades/nueva?error=datos_invalidos'));
+                    if (!Request::validateCsrf()) {
+                        $_SESSION['flash_error'] = 'csrf_invalido';
+                        $back = !empty($data['id']) ? 'actividades/editar/' . (int)$data['id'] : 'actividades/nueva';
+                        Response::redirect(View::adminUrl($back));
                     }
+                    $data = Request::all();
+
+                    // Validación por campo (los mensajes vuelven al form vía $_SESSION)
+                    $fieldErrors = [];
+                    $titulo = trim((string)($data['titulo'] ?? ''));
+                    if ($titulo === '') {
+                        $fieldErrors['titulo'] = 'El título es obligatorio.';
+                    } elseif (mb_strlen($titulo) > 150) {
+                        $fieldErrors['titulo'] = 'Máximo 150 caracteres.';
+                    }
+                    $lugar = trim((string)($data['lugar'] ?? ''));
+                    if ($lugar === '') {
+                        $fieldErrors['lugar'] = 'El lugar es obligatorio.';
+                    } elseif (mb_strlen($lugar) > 200) {
+                        $fieldErrors['lugar'] = 'Máximo 200 caracteres.';
+                    }
+                    $fecha = trim((string)($data['fecha'] ?? ''));
+                    if ($fecha === '' || !\App\Controllers\ActividadController::isValidDateStatic($fecha)) {
+                        $fieldErrors['fecha'] = 'Fecha inválida (YYYY-MM-DD).';
+                    }
+                    $horaInicio = trim((string)($data['hora_inicio'] ?? ''));
+                    if ($horaInicio === '' || !\App\Controllers\ActividadController::isValidTimeStatic($horaInicio)) {
+                        $fieldErrors['hora_inicio'] = 'Hora de inicio inválida (HH:MM).';
+                    }
+                    $horaFin = $data['hora_fin'] ?? null;
+                    if ($horaFin !== null && $horaFin !== '' && !\App\Controllers\ActividadController::isValidTimeStatic((string)$horaFin)) {
+                        $fieldErrors['hora_fin'] = 'Hora de fin inválida (HH:MM).';
+                    }
+
+                    if (!empty($fieldErrors)) {
+                        $_SESSION['field_errors'] = $fieldErrors;
+                        $_SESSION['form_data'] = $data;
+                        $back = !empty($data['id']) ? 'actividades/editar/' . (int)$data['id'] : 'actividades/nueva';
+                        $_SESSION['flash_error'] = 'datos_invalidos';
+                        Response::redirect(View::adminUrl($back));
+                    }
+
+                    $payload = [
+                        'titulo' => $titulo,
+                        'descripcion' => trim((string)($data['descripcion'] ?? '')) ?: null,
+                        'lugar' => $lugar,
+                        'fecha' => $fecha,
+                        'hora_inicio' => $horaInicio,
+                        'hora_fin' => ($horaFin !== null && $horaFin !== '') ? $horaFin : null,
+                        'categoria' => in_array($data['categoria'] ?? '', \App\Models\Actividad::CATEGORIAS, true) ? $data['categoria'] : 'culto',
+                        'destacado' => !empty($data['destacado']),
+                        'estado' => in_array($data['estado'] ?? '', \App\Models\Actividad::ESTADOS, true) ? $data['estado'] : 'programada',
+                    ];
 
                     try {
                         $userId = (int)($_SESSION['admin_user_id'] ?? 0) ?: null;
@@ -107,6 +143,9 @@ final class Routes
                         } else {
                             $savedId = \App\Models\Actividad::create($payload, $userId);
                         }
+
+                        // Limpieza de errores en sesión tras éxito
+                        unset($_SESSION['field_errors'], $_SESSION['form_data']);
 
                         // Si el admin pidió notificar, disparar push a todos los suscriptores
                         $pushResult = null;
@@ -133,7 +172,9 @@ final class Routes
                         }
                         Response::redirect(View::adminUrl($redirectTo));
                     } catch (\Throwable $e) {
-                        Response::redirect(View::adminUrl('actividades/nueva?error=' . urlencode($e->getMessage())));
+                        $_SESSION['flash_error'] = 'Error al guardar: ' . $e->getMessage();
+                        $back = !empty($data['id']) ? 'actividades/editar/' . (int)$data['id'] : 'actividades/nueva';
+                        Response::redirect(View::adminUrl($back));
                     }
                 }, [fn() => AuthMiddleware::require()]],
                 '/actividades/eliminar' => [function (): void {

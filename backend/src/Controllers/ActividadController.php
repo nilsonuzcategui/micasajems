@@ -124,12 +124,24 @@ final class ActividadController
 
     private function isValidDate(string $date): bool
     {
-        $d = \DateTime::createFromFormat('Y-m-d', $date);
-        return $d && $d->format('Y-m-d') === $date;
+        return self::isValidDateStatic($date);
     }
 
     private function isValidTime(string $time): bool
     {
+        return self::isValidTimeStatic($time);
+    }
+
+    public static function isValidDateStatic(string $date): bool
+    {
+        if ($date === '') return false;
+        $d = \DateTime::createFromFormat('Y-m-d', $date);
+        return $d && $d->format('Y-m-d') === $date;
+    }
+
+    public static function isValidTimeStatic(string $time): bool
+    {
+        if ($time === '') return false;
         $t = \DateTime::createFromFormat('H:i', $time);
         return $t && $t->format('H:i') === $time;
     }

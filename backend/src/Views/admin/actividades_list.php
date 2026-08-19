@@ -1,96 +1,134 @@
 <?php
+/** @var array|null $current_user */
+/** @var string|null $flash_error */
+/** @var string|null $flash_ok */
+/** @var string|null $flash_deleted */
+/** @var string $csrf_token */
+/** @var bool $app_debug */
+
 try {
     $items = \App\Models\Actividad::all();
+    $dbError = null;
 } catch (\Throwable $e) {
     $items = [];
-    $dbError = 'No se pudo cargar la lista de actividades. Verificá que la BD esté accesible y que hayas corrido las migraciones.';
+    $dbError = $app_debug
+        ? 'No se pudo cargar la lista de actividades: ' . $e->getMessage()
+        : 'No se pudo cargar la lista de actividades. Verificá que la BD esté accesible y que hayas corrido las migraciones.';
+}
+
+// Estadísticas rápidas
+$totalCount = is_array($items) ? count($items) : 0;
+$hoy = date('Y-m-d');
+$hoyCount = 0;
+$proximasCount = 0;
+if ($items) {
+    foreach ($items as $a) {
+        if (($a['fecha'] ?? '') === $hoy && ($a['estado'] ?? '') !== 'cancelada') $hoyCount++;
+        if (($a['fecha'] ?? '') >= $hoy && ($a['estado'] ?? '') !== 'cancelada') $proximasCount++;
+    }
 }
 ?>
-<div class="max-w-6xl mx-auto px-6 py-10">
-    <header class="mb-8 flex items-center justify-between">
+<div class="container-page">
+    <header class="header-row">
         <div>
-            <h1 class="text-3xl font-bold text-white">Actividades</h1>
-            <p class="text-slate-400 text-sm mt-1">Gestioná todas las actividades publicadas</p>
+            <h1 class="h1">Actividades</h1>
+            <p class="muted" style="margin-top:4px;">Gestioná todas las actividades publicadas</p>
         </div>
-        <a href="<?= htmlspecialchars(\App\View::adminUrl('actividades/nueva')) ?>" class="px-5 py-2.5 rounded-xl bg-[#D4AF37] text-[#101829] font-semibold hover:opacity-90">+ Nueva</a>
+        <a href="<?= htmlspecialchars(\App\View::adminUrl('actividades/nueva')) ?>" class="btn btn-primary">+ Nueva actividad</a>
     </header>
 
     <?php if (!empty($dbError)): ?>
-        <div class="mb-6 px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300 text-sm">
-            <?= htmlspecialchars($dbError) ?>
-        </div>
+        <div class="alert alert-error"><?= htmlspecialchars($dbError) ?></div>
     <?php endif; ?>
-<?php
-if (!empty($flash_ok)): ?>
-        <div class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm">Actividad guardada correctamente.</div>
+
+    <?php if (!empty($flash_ok)): ?>
+        <div class="alert alert-success">Actividad guardada correctamente.</div>
     <?php endif; ?>
+
+    <?php if (!empty($flash_deleted)): ?>
+        <div class="alert alert-warning">Actividad eliminada.</div>
+    <?php endif; ?>
+
     <?php if (isset($_GET['push_total'])): ?>
         <?php
         $pushOk = (int)($_GET['push_ok'] ?? 0);
         $pushFail = (int)($_GET['push_fail'] ?? 0);
         $pushTotal = (int)$_GET['push_total'];
-        $pushBg = $pushFail === 0 ? 'emerald' : 'amber';
+        $pushBg = $pushFail === 0 ? 'success' : 'warning';
         $pushMsg = $pushTotal === 0
             ? 'Actividad guardada. Aún no hay suscriptores push suscriptos.'
             : ('Notificaciones push enviadas: ' . $pushOk . ' ok, ' . $pushFail . ' fallidas (de ' . $pushTotal . ' totales).');
         ?>
-        <div class="mb-4 px-4 py-3 rounded-xl bg-<?= $pushBg ?>-500/10 border border-<?= $pushBg ?>-500/20 text-<?= $pushBg ?>-300 text-sm">
-            <?= htmlspecialchars($pushMsg) ?>
-        </div>
-    <?php endif; ?>
-    <?php if (!empty($flash_deleted)): ?>
-        <div class="mb-4 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm">Actividad eliminada.</div>
+        <div class="alert alert-<?= $pushBg ?>"><?= htmlspecialchars($pushMsg) ?></div>
     <?php endif; ?>
 
-    <div class="bg-[#101829] border border-white/10 rounded-2xl overflow-hidden">
-        <table class="w-full text-sm">
-            <thead class="bg-[#0c121e] text-slate-400 text-xs uppercase">
-                <tr>
-                    <th class="text-left px-4 py-3">Título</th>
-                    <th class="text-left px-4 py-3">Fecha</th>
-                    <th class="text-left px-4 py-3">Hora</th>
-                    <th class="text-left px-4 py-3">Lugar</th>
-                    <th class="text-left px-4 py-3">Estado</th>
-                    <th class="text-right px-4 py-3">Acciones</th>
-                </tr>
-            </thead>
-            <tbody class="divide-y divide-white/5">
-                <?php if (!empty($dbError)): ?>
-                    <tr><td colspan="6" class="text-center text-slate-400 py-8">No se pueden listar actividades debido al error de BD.</td></tr>
-                <?php elseif (empty($items)): ?>
-                    <tr><td colspan="6" class="text-center text-slate-400 py-8">Sin actividades cargadas.</td></tr>
-                <?php else: foreach ($items as $a): ?>
-                    <tr class="hover:bg-white/5">
-                        <td class="px-4 py-3 text-white font-medium"><?= htmlspecialchars($a['titulo']) ?></td>
-                        <td class="px-4 py-3"><?= htmlspecialchars($a['fecha']) ?></td>
-                        <td class="px-4 py-3"><?= htmlspecialchars($a['hora_inicio']) ?><?= $a['hora_fin'] ? '–' . htmlspecialchars($a['hora_fin']) : '' ?></td>
-                        <td class="px-4 py-3 text-slate-400"><?= htmlspecialchars($a['lugar']) ?></td>
-                        <td class="px-4 py-3">
+    <?php if (!$dbError && $totalCount > 0): ?>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:24px;">
+            <div class="card" style="padding:16px;">
+                <div class="label">Total</div>
+                <div style="font-size:24px;font-weight:700;color:#D4AF37;"><?= $totalCount ?></div>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div class="label">Hoy</div>
+                <div style="font-size:24px;font-weight:700;color:#D4AF37;"><?= $hoyCount ?></div>
+            </div>
+            <div class="card" style="padding:16px;">
+                <div class="label">Próximas</div>
+                <div style="font-size:24px;font-weight:700;color:#D4AF37;"><?= $proximasCount ?></div>
+            </div>
+        </div>
+    <?php endif; ?>
+
+    <div class="card" style="padding:0;overflow:hidden;">
+        <?php if (!empty($dbError)): ?>
+            <div style="padding:32px;text-align:center;color:#94a3b8;">No se pueden listar actividades debido al error de BD.</div>
+        <?php elseif (empty($items)): ?>
+            <div style="padding:48px 32px;text-align:center;color:#94a3b8;">
+                <p style="margin-bottom:12px;">Sin actividades cargadas.</p>
+                <a href="<?= htmlspecialchars(\App\View::adminUrl('actividades/nueva')) ?>" class="btn btn-primary">+ Crear la primera</a>
+            </div>
+        <?php else: ?>
+            <div style="overflow-x:auto;">
+                <table class="jems-table">
+                    <thead>
+                        <tr>
+                            <th>Título</th>
+                            <th>Fecha</th>
+                            <th>Hora</th>
+                            <th>Lugar</th>
+                            <th>Estado</th>
+                            <th style="text-align:right;">Acciones</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($items as $a): ?>
                             <?php
-                            switch ($a['estado']) {
-                                case 'cancelada':
-                                    $estadoColor = 'bg-red-500/15 text-red-300';
-                                    break;
-                                case 'realizada':
-                                    $estadoColor = 'bg-slate-500/15 text-slate-300';
-                                    break;
-                                default:
-                                    $estadoColor = 'bg-emerald-500/15 text-emerald-300';
+                            $estadoColor = 'badge-green';
+                            if (($a['estado'] ?? '') === 'cancelada') {
+                                $estadoColor = 'badge-red';
+                            } elseif (($a['estado'] ?? '') === 'realizada') {
+                                $estadoColor = 'badge-gray';
                             }
                             ?>
-                            <span class="px-2 py-1 rounded-md text-xs <?= $estadoColor ?>"><?= htmlspecialchars($a['estado']) ?></span>
-                        </td>
-                        <td class="px-4 py-3 text-right">
-                            <a href="<?= htmlspecialchars(\App\View::adminUrl('actividades/editar/' . $a['id'])) ?>" class="text-[#D4AF37] hover:underline mr-3">Editar</a>
-                            <form method="POST" action="<?= htmlspecialchars(\App\View::adminUrl('actividades/eliminar')) ?>" class="inline" onsubmit="return confirm('¿Eliminar esta actividad?')">
-                                <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>" />
-                                <input type="hidden" name="id" value="<?= (int)$a['id'] ?>" />
-                                <button type="submit" class="text-red-400 hover:underline">Eliminar</button>
-                            </form>
-                        </td>
-                    </tr>
-                <?php endforeach; endif; ?>
-            </tbody>
-        </table>
+                            <tr>
+                                <td style="color:#fff;font-weight:600;"><?= htmlspecialchars($a['titulo'] ?? '') ?></td>
+                                <td><?= htmlspecialchars($a['fecha'] ?? '') ?></td>
+                                <td><?= htmlspecialchars(substr($a['hora_inicio'] ?? '', 0, 5)) ?><?= !empty($a['hora_fin']) ? '–' . htmlspecialchars(substr($a['hora_fin'], 0, 5)) : '' ?></td>
+                                <td style="color:#94a3b8;"><?= htmlspecialchars($a['lugar'] ?? '') ?></td>
+                                <td><span class="badge <?= $estadoColor ?>"><?= htmlspecialchars($a['estado'] ?? '') ?></span></td>
+                                <td style="text-align:right;">
+                                    <a href="<?= htmlspecialchars(\App\View::adminUrl('actividades/editar/' . $a['id'])) ?>" style="color:#D4AF37;margin-right:12px;">Editar</a>
+                                    <form method="POST" action="<?= htmlspecialchars(\App\View::adminUrl('actividades/eliminar')) ?>" style="display:inline;" onsubmit="return confirm('¿Eliminar esta actividad?')">
+                                        <input type="hidden" name="csrf_token" value="<?= htmlspecialchars($csrf_token) ?>" />
+                                        <input type="hidden" name="id" value="<?= (int)$a['id'] ?>" />
+                                        <button type="submit" class="btn-danger">Eliminar</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            </div>
+        <?php endif; ?>
     </div>
 </div>
