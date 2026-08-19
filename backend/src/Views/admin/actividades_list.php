@@ -20,9 +20,23 @@ try {
             <?= htmlspecialchars($dbError) ?>
         </div>
     <?php endif; ?>
-
-    <?php if (!empty($flash_ok)): ?>
+<?php
+if (!empty($flash_ok)): ?>
         <div class="mb-4 px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300 text-sm">Actividad guardada correctamente.</div>
+    <?php endif; ?>
+    <?php if (isset($_GET['push_total'])): ?>
+        <?php
+        $pushOk = (int)($_GET['push_ok'] ?? 0);
+        $pushFail = (int)($_GET['push_fail'] ?? 0);
+        $pushTotal = (int)$_GET['push_total'];
+        $pushBg = $pushFail === 0 ? 'emerald' : 'amber';
+        $pushMsg = $pushTotal === 0
+            ? 'Actividad guardada. Aún no hay suscriptores push suscriptos.'
+            : ('Notificaciones push enviadas: ' . $pushOk . ' ok, ' . $pushFail . ' fallidas (de ' . $pushTotal . ' totales).');
+        ?>
+        <div class="mb-4 px-4 py-3 rounded-xl bg-<?= $pushBg ?>-500/10 border border-<?= $pushBg ?>-500/20 text-<?= $pushBg ?>-300 text-sm">
+            <?= htmlspecialchars($pushMsg) ?>
+        </div>
     <?php endif; ?>
     <?php if (!empty($flash_deleted)): ?>
         <div class="mb-4 px-4 py-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-sm">Actividad eliminada.</div>

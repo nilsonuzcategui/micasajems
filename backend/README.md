@@ -284,15 +284,45 @@ https://admin.micasajems.com/admin/login     → panel admin
 
 ---
 
-## 🔔 SendPulse — Web Push
+## 🔔 Notificaciones Push (SendPulse + Web Push nativo)
 
-1. Crear cuenta en [sendpulse.com](https://sendpulse.com)
-2. Ir a **Web Push** → crear un nuevo sitio para `micasajems.com`
-3. Copiar el `account_id` → pegarlo en `.env` Astro como `PUBLIC_SENDPULSE_ACCOUNT_ID`
-4. En producción, configurar HTTPS (ya hecho por Let's Encrypt en Hestia)
+El componente `BotonNotificaciones.astro` usa un esquema **híbrido** para que
+siempre haya un canal funcionando:
 
-El componente `BotonNotificaciones.astro` carga el script oficial de SendPulse
-solo cuando el usuario hace clic y llama a `PushSubscriber.subscribe()`.
+1. **SendPulse SDK** (si está configurado) — carga el script oficial de SendPulse
+   y le pide al usuario permiso de notificaciones.
+2. **Web Push nativo (VAPID)** como fallback automático si SendPulse falla o no
+   está configurado. Este canal funciona sin terceros: las suscripciones se
+   guardan en la tabla `push_subscriptions` y el backend las entrega usando
+   `WebPushClient`.
+
+> Esto significa que las notificaciones **siempre funcionarán** aunque no hayas
+> completado la registración en SendPulse.
+
+### Configurar SendPulse (opcional, recomendado)
+
+1. Crear cuenta en [sendpulse.com](https://sendpulse.com).
+2. Ir a **Web Push** → crear un nuevo sitio para `micasajems.com` (y/o
+   `admin.micasajems.com`).
+3. Copiar el `account_id` → en `.env` de Astro (raíz):
+   ```
+   PUBLIC_SENDPULSE_ACCOUNT_ID=<tu_account_id>
+   ```
+4. Verificá que el dominio esté registrado correctamente en SendPulse (es un
+   requisito del propio SendPulse; sin esto, el SDK cargará pero no inicializará
+   y el frontend caerá automáticamente al fallback VAPID).
+5. HTTPS obligatorio (ya activo por Let's Encrypt en Hestia).
+
+### Disparar notificaciones al crear/editar una actividad
+
+En el formulario de actividad del admin hay un checkbox **"Notificar a los
+suscriptores push"**. Marcándolo, al guardar la actividad se envía
+automáticamente una notificación a todos los suscriptores con el título, lugar y
+fecha del evento. El listado muestra estadísticas del envío
+(`total / ok / fallidas`).
+
+Si querés usar SendPulse como canal de envío masivo en lugar del VAPID local,
+hay que llamar a la API de SendPulse; eso queda como evolución futura.
 
 ---
 

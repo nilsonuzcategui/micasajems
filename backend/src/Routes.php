@@ -6,6 +6,7 @@ namespace App;
 use App\Controllers\ActividadController;
 use App\Controllers\AuthController;
 use App\Controllers\HealthController;
+use App\Controllers\PushController;
 use App\Controllers\SuscripcionController;
 use App\Middleware\AuthMiddleware;
 
@@ -17,6 +18,7 @@ final class Routes
         $act = new ActividadController();
         $sub = new SuscripcionController();
         $health = new HealthController();
+        $push = new PushController();
 
         // ============ HEALTH CHECK ============
         $router->get('/api/health', [$health, 'check']);
@@ -37,6 +39,9 @@ final class Routes
         $router->put('/api/admin/actividades/{id}', fn($p) => $act->update((int)$p['id']), $mwApi);
         $router->delete('/api/admin/actividades/{id}', fn($p) => $act->destroy((int)$p['id']), $mwApi);
 
+        // ============ PUSH NOTIFICATIONS (admin) ============
+        $router->post('/api/admin/push/send', [$push, 'send'], [fn() => AuthMiddleware::require()]);
+
         // ============ VISTAS HTML ADMIN ============
         // Se registran con y sin prefijo /admin para soportar:
         //   - Subdominio dedicado (admin.micasajems.com/) → sin prefijo
@@ -51,7 +56,9 @@ final class Routes
                     session_destroy();
                     Response::redirect(View::adminUrl('login'));
                 },
-                '/dashboard'     => [fn() => View::renderAdmin('dashboard'), [fn() => AuthMiddleware::require()]],
+                '/dashboard'     => [function (): void {
+                    Response::redirect(View::adminUrl('actividades'));
+                }, [fn() => AuthMiddleware::require()]],
                 '/actividades'   => [fn() => View::renderAdmin('actividades_list'), [fn() => AuthMiddleware::require()]],
                 '/actividades/nueva' => [fn() => View::renderAdmin('actividad_form'), [fn() => AuthMiddleware::require()]],
                 '/actividades/editar/{id}' => [fn($p) => View::renderAdmin('actividad_form', ['id' => (int)$p['id']]), [fn() => AuthMiddleware::require()]],
@@ -91,12 +98,38 @@ final class Routes
 
                     try {
                         $userId = (int)($_SESSION['admin_user_id'] ?? 0) ?: null;
-                        if (!empty($data['id'])) {
+                        $isEdit = !empty($data['id']);
+                        $savedId = null;
+                        if ($isEdit) {
                             \App\Models\Actividad::update((int)$data['id'], $payload);
+                            $savedId = (int)$data['id'];
                         } else {
-                            \App\Models\Actividad::create($payload, $userId);
+                            $savedId = \App\Models\Actividad::create($payload, $userId);
                         }
-                        Response::redirect(View::adminUrl('actividades?ok=1'));
+
+                        // Si el admin pidió notificar, disparar push a todos los suscriptores
+                        $pushResult = null;
+                        if (!empty($data['notificar_push'])) {
+                            try {
+                                $push = new \App\Controllers\PushController();
+                                $body = $payload['lugar'] . ' · ' . $payload['fecha'] . ' ' . $payload['hora_inicio'];
+                                $pushResult = $push->broadcast([
+                                    'title' => 'Nueva actividad: ' . $payload['titulo'],
+                                    'body' => $body,
+                                    'url' => '/#actividades',
+                                ]);
+                            } catch (\Throwable $e) {
+                                error_log('[Push] Error al notificar: ' . $e->getMessage());
+                            }
+                        }
+
+                        $redirectTo = 'actividades?ok=1';
+                        if ($pushResult !== null) {
+                            $redirectTo .= '&push_total=' . (int)($pushResult['total'] ?? 0)
+                                . '&push_ok=' . (int)($pushResult['success'] ?? 0)
+                                . '&push_fail=' . (int)($pushResult['failed'] ?? 0);
+                        }
+                        Response::redirect(View::adminUrl($redirectTo));
                     } catch (\Throwable $e) {
                         Response::redirect(View::adminUrl('actividades/nueva?error=' . urlencode($e->getMessage())));
                     }

@@ -36,6 +36,7 @@ jobs:
                   # Variables públicas expuestas al cliente en el bundle
                   PUBLIC_API_URL: https://admin.micasajems.com/api
                   PUBLIC_ADMIN_URL: https://admin.micasajems.com
+                  PUBLIC_VAPID_KEY: ${{ secrets.PUBLIC_VAPID_KEY }}
                   # Acepta SENDPULSE_PUBLIC_ACCOUNT_ID; si no está, usa el API ID como fallback
                   PUBLIC_SENDPULSE_ACCOUNT_ID: ${{ secrets.SENDPULSE_PUBLIC_ACCOUNT_ID || secrets.SENDPULSE_API_ID }}
               run: npm run build
@@ -89,6 +90,10 @@ jobs:
                   SENDPULSE_API_URL=https://api.sendpulse.com
                   SENDPULSE_API_ID=${{ secrets.SENDPULSE_API_ID }}
                   SENDPULSE_API_SECRET=${{ secrets.SENDPULSE_API_SECRET }}
+
+                  VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
+                  VAPID_PRIVATE_KEY="${{ secrets.VAPID_PRIVATE_KEY }}"
+                  VAPID_SUBJECT=mailto:admin@micasajems.com
                   JEMS_ENV_EOF
                   echo "✓ .env generado"
                   echo "Contenido:"

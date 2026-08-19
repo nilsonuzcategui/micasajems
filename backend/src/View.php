@@ -24,7 +24,7 @@ final class View
 
         if ($view === 'redirect') {
             if (AuthMiddleware::user()) {
-                Response::redirect(self::adminUrl('dashboard'));
+                Response::redirect(self::adminUrl('actividades'));
             }
             Response::redirect(self::adminUrl('login'));
         }

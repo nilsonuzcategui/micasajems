@@ -20,7 +20,7 @@
 <?php if ($current_user): ?>
 <nav class="bg-[#101829] border-b border-white/5">
     <div class="max-w-6xl mx-auto px-6 py-4 flex items-center justify-between">
-        <a href="<?= htmlspecialchars(\App\View::adminUrl('dashboard')) ?>" class="font-bold text-[#D4AF37] text-lg">
+        <a href="<?= htmlspecialchars(\App\View::adminUrl('actividades')) ?>" class="font-bold text-[#D4AF37] text-lg">
             <?= htmlspecialchars($app_name) ?>
         </a>
         <div class="flex items-center gap-4 text-sm">
