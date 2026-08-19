@@ -47,24 +47,46 @@ self.addEventListener('push', function (event) {
     );
 });
 
-// Click en la notificación → abre el sitio
+// Click en la notificación → abre la URL (con soporte de hash)
 self.addEventListener('notificationclick', function (event) {
     console.log('[SW] Notification clicked');
     event.notification.close();
 
-    const url = (event.notification.data && event.notification.data.url) || '/';
+    const rawUrl = (event.notification.data && event.notification.data.url) || '/';
+    // Si la URL es relativa, le agregamos el origin del SW
+    const url = rawUrl.startsWith('http') ? rawUrl : (self.location.origin + rawUrl);
 
     event.waitUntil(
-        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(function (windowClients) {
-            // Si ya hay una ventana del sitio, enfocarla
+        clients.matchAll({ type: 'window', includeUncontrolled: true }).then(async function (windowClients) {
+            // Buscar una ventana del mismo origen
             for (let i = 0; i < windowClients.length; i++) {
                 const client = windowClients[i];
                 if (client.url.includes(self.location.origin) && 'focus' in client) {
-                    client.navigate(url);
-                    return client.focus();
+                    await client.focus();
+
+                    // Extraer path + hash de la URL objetivo
+                    const target = new URL(url);
+                    const targetPath = target.pathname + target.search + target.hash;
+
+                    // Comparar contra la URL actual del cliente (sin hash)
+                    const current = new URL(client.url);
+                    const currentPath = current.pathname + current.search;
+
+                    if (currentPath === targetPath) {
+                        // Misma ruta: solo cambió el hash → navegamos igual para que el browser haga scroll,
+                        // y le mandamos postMessage por si quiere hacer scrollIntoView suave
+                        if (target.hash) {
+                            client.postMessage({ type: 'scroll-to', hash: target.hash });
+                        }
+                        return;
+                    }
+
+                    // Ruta distinta: navegar (esto también procesa el hash)
+                    return client.navigate(url);
                 }
             }
-            // Si no hay ventana, abrir nueva
+
+            // No hay ventana abierta → abrir una nueva
             if (clients.openWindow) {
                 return clients.openWindow(url);
             }

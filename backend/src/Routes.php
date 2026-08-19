@@ -9,6 +9,7 @@ use App\Controllers\HealthController;
 use App\Controllers\PushController;
 use App\Controllers\SuscripcionController;
 use App\Middleware\AuthMiddleware;
+use App\Config;
 
 final class Routes
 {
@@ -112,11 +113,12 @@ final class Routes
                         if (!empty($data['notificar_push'])) {
                             try {
                                 $push = new \App\Controllers\PushController();
+                                $frontendUrl = rtrim((string)Config::get('FRONTEND_URL', 'https://micasajems.com'), '/');
                                 $body = $payload['lugar'] . ' · ' . $payload['fecha'] . ' ' . $payload['hora_inicio'];
                                 $pushResult = $push->broadcast([
                                     'title' => 'Nueva actividad: ' . $payload['titulo'],
                                     'body' => $body,
-                                    'url' => '/#actividades',
+                                    'url' => $frontendUrl . '/#actividades',
                                 ]);
                             } catch (\Throwable $e) {
                                 error_log('[Push] Error al notificar: ' . $e->getMessage());

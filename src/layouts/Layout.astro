@@ -70,7 +70,29 @@ const canonicalURL = new URL(Astro.url.pathname, Astro.site || "https://micasaje
     <!-- NOTIFICACIONES PUSH - SENDPULSE -->
     <script charset="UTF-8" src="//web.webpushs.com/js/push/f25a75e12bdc9aaf6fe59d4a6766df83_1.js" async></script>
   </head>
-  <body class="bg-[#101829] antialiased"> <slot /> </body>
+  <body class="bg-[#101829] antialiased"> <slot />
+    <script is:inline>
+      // Escucha al Service Worker para hacer scroll suave cuando el usuario hace clic
+      // en una notificación push y ya tiene la pestaña abierta.
+      if ('serviceWorker' in navigator) {
+        navigator.serviceWorker.addEventListener('message', function (event) {
+          if (event.data && event.data.type === 'scroll-to' && event.data.hash) {
+            try {
+              var el = document.querySelector(event.data.hash);
+              if (el) {
+                el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              } else if (event.data.hash === '#actividades') {
+                // Fallback: si la sección no existe todavía, scrollear arriba
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+              }
+            } catch (e) {
+              console.warn('[Push] Error en scroll-to:', e);
+            }
+          }
+        });
+      }
+    </script>
+  </body>
 </html>
 
 <style is:global>
