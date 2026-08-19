@@ -295,9 +295,15 @@ SendPulse se encarga de **todo el flujo**:
 - **Envío** → el backend PHP llama a la API REST de SendPulse para crear y
   disparar una campaña push contra todos los suscriptores del sitio.
 
-El componente `BotonNotificaciones.astro` simplemente invoca el método
-`subscribe()` del `PushSubscriber` global que expone SendPulse. No carga
-scripts externos propios ni necesita servicio de terceros propio.
+El componente `BotonNotificaciones.astro` simplemente muestra un panel
+informativo. **SendPulse se auto-gestiona**: el script per-site que está en
+`<head>` muestra su propio popup/banner/botón flotante para que el visitante
+se suscriba. No hace falta código custom en el frontend.
+
+> **Nota sobre `window.PushSubscriber`:** el script per-site NO expone esa
+> variable global. Si querés usar el SDK manual (modo antiguo), hay que cargar
+> `cdn.sendpulse.com/push/push.js` y crear manualmente el `PushSubscriber`. Con
+> el script per-site eso no es necesario.
 
 ### Variables de entorno necesarias
 

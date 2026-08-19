@@ -1,186 +1,46 @@
 ---
-// Botón de notificaciones.
-// SendPulse hace todo: el script per-site de <head> define window.PushSubscriber.
-// Al hacer clic, invocamos su método subscribe() — no cargamos nada externo.
-// Si el script de SendPulse no está disponible (por ej. en localhost sin script cargado),
-// mostramos un mensaje claro.
-const sendpulseAccountId = ((import.meta.env.PUBLIC_SENDPULSE_ACCOUNT_ID ?? "") as string).trim();
-const apiBase = ((import.meta.env.PUBLIC_API_URL ?? "") as string).trim();
+// SendPulse hace todo: el script per-site (cargado en <head> de Layout.astro)
+// muestra su propio popup/banner para que el visitante se suscriba.
+// Acá solo dejamos un panel informativo para que el usuario sepa qué esperar.
+const sendpulseConfigured = ((import.meta.env.PUBLIC_SENDPULSE_ACCOUNT_ID ?? "") as string).trim() !== "";
 ---
 
 <section
   id="seccion-push"
-  class="rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#D4AF37]/10 via-[#101829] to-[#101829] p-6 md:p-8 flex flex-col md:flex-row items-center gap-6"
+  class="rounded-2xl border border-[#D4AF37]/20 bg-gradient-to-br from-[#D4AF37]/10 via-[#101829] to-[#101829] p-6 md:p-8"
 >
-  <div class="shrink-0 w-16 h-16 rounded-2xl bg-[#D4AF37]/15 text-[#D4AF37] flex items-center justify-center">
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path
-        stroke-linecap="round"
-        stroke-linejoin="round"
-        stroke-width="2"
-        d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
-      ></path>
-    </svg>
-  </div>
+  <div class="flex flex-col md:flex-row items-center gap-6">
+    <div class="shrink-0 w-16 h-16 rounded-2xl bg-[#D4AF37]/15 text-[#D4AF37] flex items-center justify-center">
+      <svg xmlns="http://www.w3.org/2000/svg" class="w-8 h-8" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path
+          stroke-linecap="round"
+          stroke-linejoin="round"
+          stroke-width="2"
+          d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9"
+        ></path>
+      </svg>
+    </div>
 
-  <div class="flex-1 text-center md:text-left">
-    <h3 class="text-xl font-bold text-white">¿Querés recibir notificaciones y avisos de las actividades?</h3>
-    <p class="text-sm text-slate-300 mt-1">
-      Te avisamos cada vez que publiquemos un culto, estudio bíblico o evento especial. Activá las notificaciones push
-      haciendo clic en el botón.
-    </p>
-  </div>
+    <div class="flex-1 text-center md:text-left" style="display:none">
+      <h3 class="text-xl font-bold text-white">¿Querés recibir notificaciones de las actividades?</h3>
+      <p class="text-sm text-slate-300 mt-1">
+        Te avisamos cada vez que publiquemos un culto, estudio bíblico o evento especial.
+      </p>
 
-  <button
-    id="btn-suscribir-push"
-    type="button"
-    data-sp-account-id={sendpulseAccountId}
-    data-api-base={apiBase}
-    class="shrink-0 px-6 py-3 rounded-full bg-[#D4AF37] text-[#101829] font-bold hover:scale-105 transition shadow-2xl flex items-center gap-2"
-  >
-    <svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-    </svg>
-    Quiero recibir notificaciones
-  </button>
+      {
+        sendpulseConfigured ? (
+          <p class="text-xs text-slate-400 mt-3 leading-relaxed">
+            Al cargar la página, <strong class="text-[#D4AF37]">SendPulse</strong> te muestra un pequeño banner o botón
+            (generalmente abajo a la derecha). Hacé clic ahí y aceptá el permiso del navegador para suscribirte. Las
+            notificaciones las envía la iglesia directamente desde el panel administrativo.
+          </p>
+        ) : (
+          <p class="text-xs text-amber-300 mt-3 leading-relaxed">
+            ⚠️ Falta configurar <code class="bg-black/30 px-1 rounded">PUBLIC_SENDPULSE_ACCOUNT_ID</code> en el
+            servidor. Pedile al administrador que lo configure.
+          </p>
+        )
+      }
+    </div>
+  </div>
 </section>
-
-<div id="push-status" class="hidden mt-3 text-sm"></div>
-
-<script is:inline>
-  (function () {
-    const btn = document.getElementById("btn-suscribir-push");
-    if (!btn) return;
-    const status = document.getElementById("push-status");
-
-    const spAccountId = btn.getAttribute("data-sp-account-id") || "";
-    const apiBase = btn.getAttribute("data-api-base") || "";
-
-    btn.addEventListener("click", function () {
-      if (!("serviceWorker" in navigator) || !("PushManager" in window)) {
-        mostrarError("Tu navegador no soporta notificaciones push. Probá Chrome, Edge o Firefox.");
-        return;
-      }
-      if (Notification.permission === "denied") {
-        mostrarError("Las notificaciones están bloqueadas. Habilitalas en la configuración del navegador.");
-        return;
-      }
-
-      btn.disabled = true;
-      btn.innerHTML = "Cargando...";
-
-      // Esperar a que el script per-site de SendPulse haya terminado de inicializar
-      esperarSendPulseListo(0);
-    });
-
-    function esperarSendPulseListo(intento) {
-      if (typeof window.PushSubscriber === "function") {
-        suscribirSendPulse();
-        return;
-      }
-      if (intento >= 40) {
-        // ~10 segundos (40 * 250ms)
-        mostrarError(
-          "SendPulse no terminó de inicializar. Verificá que el script esté correctamente embebido en <head> y que la web esté registrada en sendpulse.com."
-        );
-        resetBtn();
-        return;
-      }
-      setTimeout(function () {
-        esperarSendPulseListo(intento + 1);
-      }, 250);
-    }
-
-    function suscribirSendPulse() {
-      try {
-        if (!spAccountId) {
-          mostrarError(
-            "Falta PUBLIC_SENDPULSE_ACCOUNT_ID. Pedile al administrador que lo configure."
-          );
-          resetBtn();
-          return;
-        }
-        const subscriber = new window.PushSubscriber(spAccountId);
-        // El SDK expone subscribe(); en algunos builds también showPrompt().
-        const metodo = typeof subscriber.subscribe === "function" ? "subscribe" : null;
-        const alt = typeof subscriber.showSubscriptionPrompt === "function"
-          ? subscriber.showSubscriptionPrompt
-          : null;
-
-        if (!metodo && !alt) {
-          mostrarError(
-            "El SDK de SendPulse cargó pero no expone el método de suscripción. Contactá al administrador."
-          );
-          resetBtn();
-          return;
-        }
-
-        const promise = (metodo ? subscriber[metodo]() : subscriber.showSubscriptionPrompt());
-
-        Promise.resolve(promise)
-          .then(function () {
-            btn.innerHTML = svgCheck();
-            btn.classList.add("opacity-60", "cursor-default");
-            mostrarExito(
-              "¡Listo! Te suscribiste correctamente. Vas a recibir los avisos de actividades."
-            );
-            logSuscripcionSendPulse();
-          })
-          .catch(function (err) {
-            console.error("[Push] SendPulse subscribe error", err);
-            const msg = (err && (err.message || err)) || "desconocido";
-            mostrarError(
-              "SendPulse rechazó la suscripción (" + msg + "). Si seguís con problemas, recargá la página o probá desde otro navegador."
-            );
-            resetBtn();
-          });
-      } catch (e) {
-        console.error("[Push] init error", e);
-        mostrarError("Error inesperado: " + (e && e.message ? e.message : "sin detalle"));
-        resetBtn();
-      }
-    }
-
-    function logSuscripcionSendPulse() {
-      if (!apiBase) return;
-      try {
-        fetch(apiBase.replace(/\/$/, "") + "/suscripciones", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            source: "sendpulse",
-            sendpulse_id: spAccountId || null,
-            user_agent: navigator.userAgent,
-          }),
-        });
-      } catch (e) {
-        console.warn("[Push] No se pudo loguear la suscripción:", e);
-      }
-    }
-
-    function resetBtn() {
-      btn.disabled = false;
-      btn.innerHTML = svgBoton();
-    }
-
-    function svgBoton() {
-      return '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Quiero recibir notificaciones';
-    }
-    function svgCheck() {
-      return '<svg xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg> Suscripto';
-    }
-
-    function setStatus(classes, msg) {
-      if (!status) return;
-      status.className = classes;
-      status.textContent = msg;
-      status.classList.remove("hidden");
-    }
-    function mostrarExito(msg) {
-      setStatus("mt-3 text-sm px-4 py-3 rounded-xl bg-emerald-500/10 border border-emerald-500/20 text-emerald-300", msg);
-    }
-    function mostrarError(msg) {
-      setStatus("mt-3 text-sm px-4 py-3 rounded-xl bg-red-500/10 border border-red-500/20 text-red-300", msg);
-    }
-  })();
-</script>
