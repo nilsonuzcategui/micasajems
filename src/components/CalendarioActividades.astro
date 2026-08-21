@@ -129,7 +129,7 @@ const categorias = [
   >
     <div
       id="cal-loading"
-      class="hidden absolute inset-0 z-20 bg-[#0c121e]/70 backdrop-blur-sm rounded-2xl flex items-center justify-center"
+      class="hidden absolute inset-0 z-20 bg-[#0c121e]/30 backdrop-blur-[2px] rounded-2xl flex items-center justify-center pointer-events-none"
     >
       <div class="flex items-center gap-3 text-slate-300 text-sm">
         <span class="inline-block w-4 h-4 border-2 border-white/20 border-t-[#D4AF37] rounded-full animate-spin"></span>
@@ -200,11 +200,19 @@ const categorias = [
     const errorEl = document.getElementById("cal-error");
     if (!el || !window.FullCalendar) return;
 
+    // Fuente única: arrancamos con los eventos del SSR (instantáneo) y
+    // vamos reemplazando en el lugar cuando llega la respuesta de la API.
+    // Así nunca se borra el calendario: si la API falla o devuelve [],
+    // queda lo último válido (SSR o API previa).
+    const SOURCE_ID = "api";
+    const seedEvents = Array.isArray(initialEvents) ? initialEvents : [];
+
+    // Caché por rango (30s) para no re-pegar la misma ventana.
     const cache = new Map();
     if (initialRange && initialRange.desde && initialRange.hasta) {
       cache.set(initialRange.desde + "|" + initialRange.hasta + "|0", {
         ts: Date.now(),
-        data: initialEvents,
+        data: seedEvents,
       });
     }
 
@@ -230,14 +238,25 @@ const categorias = [
     renderUpdated();
 
     let incluirCanceladas = false;
+    // Gate para no mostrar el overlay ni refetchear durante el primer
+    // render del calendario (FullCalendar dispara datesSet apenas
+    // termina render()).
+    let initialDone = false;
 
     function toDateStr(value) {
       if (!value) return "";
       return String(value).slice(0, 10);
     }
 
-    function isInsideRange(fecha, desde, hasta) {
-      return fecha >= desde && fecha <= hasta;
+    function getCurrentRange() {
+      const view = calendar.view;
+      const desde = toDateStr(view.activeStart.toISOString());
+      const hasta = toDateStr(view.activeEnd.toISOString());
+      return {
+        desde,
+        hasta,
+        key: desde + "|" + hasta + "|" + (incluirCanceladas ? "1" : "0"),
+      };
     }
 
     async function fetchRange(desde, hasta, opts) {
@@ -412,35 +431,42 @@ const categorias = [
 
     let currentRangeKey = null;
 
-    function getCurrentRange() {
-      const view = calendar.view;
-      const desde = toDateStr(view.activeStart.toISOString());
-      const hasta = toDateStr(view.activeEnd.toISOString());
-      return {
-        desde,
-        hasta,
-        key: desde + "|" + hasta + "|" + (incluirCanceladas ? "1" : "0"),
-      };
+    function setSourceEvents(events) {
+      // Reemplaza in-place los eventos de la única fuente. Nunca la
+      // eliminamos, así el calendario nunca queda en blanco.
+      const src = calendar.getEventSourceById(SOURCE_ID);
+      if (src && typeof src.removeAllEvents === "function") {
+        src.removeAllEvents();
+        if (Array.isArray(events)) {
+          events.forEach(function (ev) {
+            calendar.addEvent(ev);
+          });
+        }
+      } else {
+        // Fallback para versiones viejas: removemos y volvemos a agregar.
+        if (src) src.remove();
+        calendar.addEventSource({ id: SOURCE_ID, events: events || [] });
+      }
     }
 
-    function replaceDataSource(id, events) {
-      const existing = calendar.getEventSourceById(id);
-      if (existing) existing.remove();
-      calendar.addEventSource({ id: id, events: events });
-    }
-
-    function clearDataSource(id) {
-      const existing = calendar.getEventSourceById(id);
-      if (existing) existing.remove();
+    function isCurrentRange(key) {
+      return currentRangeKey === null || currentRangeKey === key;
     }
 
     async function loadRange(opts) {
       const { desde, hasta, key, bypassCache, showLoading } = opts;
       const cached = cache.get(key);
-      if (!bypassCache && cached && Array.isArray(cached.data) && Date.now() - cached.ts < 30 * 1000) {
-        clearDataSource("api");
-        calendar.addEventSource({ id: "api", events: cached.data });
-        currentRangeKey = key;
+      if (
+        !bypassCache &&
+        cached &&
+        Array.isArray(cached.data) &&
+        Date.now() - cached.ts < 30 * 1000
+      ) {
+        // Hit de caché → pintamos sin mostrar overlay y marcamos el rango actual.
+        if (isCurrentRange(key)) {
+          setSourceEvents(cached.data);
+          currentRangeKey = key;
+        }
         return;
       }
       if (showLoading) setLoading(true);
@@ -450,35 +476,45 @@ const categorias = [
           incluirCanceladas,
           bypassCache: !!bypassCache,
         });
-        if (key !== getCurrentRange().key) return;
-        replaceDataSource("api", Array.isArray(events) ? events : []);
-        clearDataSource("ssr");
-        currentRangeKey = key;
+        if (!isCurrentRange(key)) return;
+        // Si la API devuelve un array (incluso vacío), actualizamos en sitio.
+        // Nunca dejamos la fuente vacía por error o respuesta vacía: en esos
+        // casos mantenemos lo último válido (seed SSR o respuesta previa).
+        if (Array.isArray(events)) {
+          cache.set(key, { ts: Date.now(), data: events });
+          setSourceEvents(events);
+          currentRangeKey = key;
+          setUltimaActualizacion(Date.now());
+        }
       } catch (err) {
         console.warn("[calendario] error cargando rango", desde, hasta, err);
-        if (errorEl) errorEl.classList.remove("hidden");
-        // Si la API falla, dejamos la fuente del SSR como fallback para
-        // que el calendario no quede en blanco.
+        if (isCurrentRange(key) && errorEl) errorEl.classList.remove("hidden");
+        // Fallback: no tocamos la fuente → queda lo último válido.
       } finally {
         if (showLoading) setLoading(false);
       }
     }
 
-    // 1) Pintamos el SSR apenas carga la página (instantáneo, sin loading).
-    if (initialEvents.length > 0) {
-      calendar.addEventSource({ id: "ssr", events: initialEvents });
+    // 1) Pintamos el seed (eventos del SSR) apenas carga la página.
+    calendar.addEventSource({ id: SOURCE_ID, events: seedEvents });
+    {
       const r0 = getCurrentRange();
       currentRangeKey = r0.key;
     }
 
-    // 2) 250 ms después, vamos a la API real para reflejar altas/bajas.
+    // 2) Refresco silencioso contra la API para reflejar altas/bajas.
+    //    No mostramos overlay: el usuario ya ve el seed del SSR.
     setTimeout(function () {
       const r = getCurrentRange();
       loadRange({ ...r, bypassCache: true, showLoading: false });
+      initialDone = true;
     }, 250);
 
-    // 3) Al cambiar de mes / semana / vista, recargamos desde la API.
+    // 3) Al cambiar de mes / semana / vista, recargamos desde la API,
+    //    pero solo después del primer render (sino el datesSet inicial
+    //    dispara el overlay y tapa el calendario).
     calendar.on("datesSet", function () {
+      if (!initialDone) return;
       const r = getCurrentRange();
       const cached = cache.get(r.key);
       if (cached && Date.now() - cached.ts < 30 * 1000 && currentRangeKey === r.key) {
@@ -486,14 +522,6 @@ const categorias = [
       }
       loadRange({ ...r, bypassCache: false, showLoading: true });
     });
-
-    function getCurrentRange() {
-      const view = calendar.view;
-      return {
-        desde: toDateStr(view.activeStart.toISOString()),
-        hasta: toDateStr(view.activeEnd.toISOString()),
-      };
-    }
 
     // Al volver a la pestaña o recuperar el foco, invalidar caché y refetch.
     function onRevalidateEvent() {

@@ -33,17 +33,11 @@ jobs:
             # Esto genera los archivos finales en la carpeta 'dist'
             - name: Build Astro Project
               env:
-                  # Variables públicas expuestas al cliente en el bundle
-                  PUBLIC_API_URL: https://admin.micasajems.com/api
-                  PUBLIC_ADMIN_URL: https://admin.micasajems.com
-                  PUBLIC_VAPID_KEY: ${{ secrets.PUBLIC_VAPID_KEY }}
-                  # Account ID del sitio Web Push (hash del script per-site de SendPulse)
-                  PUBLIC_SENDPULSE_ACCOUNT_ID: ${{ secrets.SENDPULSE_PUBLIC_ACCOUNT_ID }}
+                  # URL del API externo de actividades (otro proyecto).
+                  PUBLIC_ACTIVIDADES_API: ${{ secrets.PUBLIC_ACTIVIDADES_API }}
               run: npm run build
 
-            # =========================================================
-            # DEPLOY 1: Frontend Astro → micasajems.com (public_html)
-            # =========================================================
+            # 4. Subir el frontend Astro vía FTP
             - name: Deploy Astro Frontend via FTP
               uses: SamKirkland/FTP-Deploy-Action@v4.3.0
               with:
@@ -59,73 +53,3 @@ jobs:
                       .git*
                       .git*/**
                       .cache/**
-
-            # =========================================================
-            # DEPLOY 2: Backend PHP → admin.micasajems.com (subdominio)
-            # =========================================================
-
-            # 4. Generar .env de producción para el backend PHP
-            # Este archivo NO debe estar en git, se genera en cada deploy
-            - name: Generar .env del backend (producción)
-              run: |
-                  mkdir -p backend
-                  cat > backend/.env <<'JEMS_ENV_EOF'
-                  DB_HOST=${{ secrets.DB_HOST }}
-                  DB_PORT=${{ secrets.DB_PORT }}
-                  DB_NAME=${{ secrets.DB_NAME }}
-                  DB_USER=${{ secrets.DB_USER }}
-                  DB_PASS=${{ secrets.DB_PASS }}
-                  DB_CHARSET=utf8mb4
-
-                  APP_ENV=production
-                  APP_DEBUG=false
-                  APP_URL=https://admin.micasajems.com
-                  API_BASE_URL=https://admin.micasajems.com/api
-                  ADMIN_URL=https://admin.micasajems.com
-                  FRONTEND_URL=https://micasajems.com
-
-                  SESSION_NAME=jems_admin_session
-                  SESSION_LIFETIME=7200
-
-                  SENDPULSE_API_URL=https://api.sendpulse.com
-                  SENDPULSE_API_ID=${{ secrets.SENDPULSE_API_ID }}
-                  SENDPULSE_API_SECRET=${{ secrets.SENDPULSE_API_SECRET }}
-                  SENDPULSE_PUSH_WEBSITE_ID=${{ secrets.SENDPULSE_PUSH_WEBSITE_ID }}
-
-                  VAPID_PUBLIC_KEY=${{ secrets.VAPID_PUBLIC_KEY }}
-                  VAPID_PRIVATE_KEY="${{ secrets.VAPID_PRIVATE_KEY }}"
-                  VAPID_SUBJECT=mailto:admin@micasajems.com
-                  JEMS_ENV_EOF
-                  echo "✓ .env generado"
-                  echo "Contenido:"
-                  cat backend/.env
-
-            # 5. Subir el backend PHP completo vía FTP al subdominio admin
-            # El .htaccess bloquea el acceso directo a .env, src/, database/, storage/
-            - name: Deploy Backend PHP via FTP
-              uses: SamKirkland/FTP-Deploy-Action@v4.3.0
-              with:
-                  # Credenciales FTP del subdominio admin.micasajems.com
-                  server: ${{ secrets.ADMIN_SSH_HOST }}
-                  username: ${{ secrets.ADMIN_SSH_USER }}
-                  password: ${{ secrets.ADMIN_SSH_PASSWORD }}
-                  port: 21
-
-                  # Subimos toda la carpeta backend/
-                  # El entry point es backend/index.php
-                  # Al hacer FTP a /, index.php queda en public_html/index.php
-                  local-dir: ./backend/
-
-                  # Raíz del subdominio admin (suele ser /public_html/)
-                  server-dir: /
-
-                  state-name: .ftp-deploy-state-backend
-                  log-level: verbose
-                  exclude: |
-                      .git*
-                      .git*/**
-                      .env.example
-                      README.md
-                      storage/logs/*
-                      storage/cache/*
-                      database/migrations/README.md

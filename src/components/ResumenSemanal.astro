@@ -1,11 +1,6 @@
 ---
 import type { Actividad } from "../lib/api";
-import {
-  formatFechaLarga,
-  formatHoraCorta,
-  categoriaLabel,
-  categoriaColor,
-} from "../lib/api";
+import { buildResumenHTML, buildResumenHeader } from "../lib/resumen";
 
 interface Props {
   actividades: Actividad[];
@@ -13,103 +8,115 @@ interface Props {
 
 const { actividades } = Astro.props;
 
-const hoy = new Date();
-hoy.setHours(0, 0, 0, 0);
-
-const DIAS_ADELANTE = 15;
-const proximaSemana: Actividad[] = [];
-
-for (const a of actividades) {
-  if (a.estado === "cancelada") continue;
-  const fecha = new Date(a.fecha + "T00:00:00");
-  const diffDias = Math.floor((fecha.getTime() - hoy.getTime()) / 86400000);
-  if (diffDias >= 0 && diffDias < DIAS_ADELANTE) {
-    proximaSemana.push(a);
-  }
-}
-
-const grouped: Record<string, Actividad[]> = {};
-for (const a of proximaSemana) {
-  grouped[a.fecha] ??= [];
-  grouped[a.fecha].push(a);
-}
-for (const key of Object.keys(grouped)) {
-  grouped[key].sort((a, b) => {
-    const ha = a.hora_inicio ?? "";
-    const hb = b.hora_inicio ?? "";
-    return ha.localeCompare(hb);
-  });
-}
-const orderedDays = Object.keys(grouped).sort();
+const headerHtml = buildResumenHeader(actividades);
+const bodyHtml = buildResumenHTML(actividades);
 ---
 
 <section class="space-y-3">
-  <header class="flex items-baseline justify-between mb-2">
-    <h3 class="text-2xl font-bold text-white">Próximos 15 días</h3>
-    <span class="text-xs text-slate-400 uppercase tracking-wider">
-      {proximaSemana.length} {proximaSemana.length === 1 ? "actividad" : "actividades"}
-    </span>
-  </header>
-
-  {proximaSemana.length === 0 ? (
-    <div class="rounded-2xl border border-dashed border-white/10 p-8 text-center text-slate-400">
-      No hay actividades programadas para los próximos {DIAS_ADELANTE} días.
-    </div>
-  ) : (
-    <div class="space-y-4">
-      {orderedDays.map((fecha) => (
-        <div class="rounded-2xl border border-white/5 bg-[#0c121e]/60 overflow-hidden">
-          <div class="px-5 py-2 bg-white/5 text-xs uppercase tracking-wider text-[#D4AF37]">
-            {formatFechaLarga(fecha)}
-          </div>
-          <ul class="divide-y divide-white/5">
-            {grouped[fecha].map((a) => (
-              <li class="px-5 py-4 flex gap-4 hover:bg-white/[0.02] transition">
-                <div class="shrink-0 w-16 text-center">
-                  {a.hora_inicio ? (
-                    <>
-                      <p class="text-2xl font-bold text-white leading-none">
-                        {formatHoraCorta(a.hora_inicio).split(":")[0]}<span class="text-[#D4AF37]">:</span>{formatHoraCorta(a.hora_inicio).split(":")[1]}
-                      </p>
-                      <p class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">
-                        {a.hora_fin ? `–${formatHoraCorta(a.hora_fin)}` : "hs"}
-                      </p>
-                    </>
-                  ) : (
-                    <p class="text-xs text-slate-400 uppercase tracking-wider">Todo el día</p>
-                  )}
-                </div>
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-start gap-2 flex-wrap">
-                    <h4 class="font-semibold text-white">{a.titulo}</h4>
-                    <span
-                      class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full"
-                      style={`background:${categoriaColor(a.categoria)}22;color:${categoriaColor(a.categoria)}`}
-                    >
-                      {categoriaLabel(a.categoria)}
-                    </span>
-                    {a.destacado && (
-                      <span class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37]">
-                        Destacado
-                      </span>
-                    )}
-                  </div>
-                  {a.descripcion && (
-                    <p class="text-sm text-slate-400 mt-1 line-clamp-2">{a.descripcion}</p>
-                  )}
-                  <p class="text-xs text-slate-500 mt-1 flex items-center gap-1">
-                    <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path>
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                    {a.lugar}
-                  </p>
-                </div>
-              </li>
-            ))}
-          </ul>
-        </div>
-      ))}
-    </div>
-  )}
+  <div id="resumen-header" set:html={headerHtml}></div>
+  <div id="resumen-body" set:html={bodyHtml}></div>
 </section>
+
+<script>
+  import type { Actividad } from "../lib/api";
+  import { buildResumenHTML, buildResumenHeader } from "../lib/resumen";
+
+  const headerEl = document.getElementById("resumen-header");
+  const bodyEl = document.getElementById("resumen-body");
+
+  function getApiBase(): string {
+    const env = (import.meta.env.PUBLIC_ACTIVIDADES_API ?? "").trim().replace(/\/+$/, "");
+    return env === "" ? "https://api.micasajems.com/api" : env;
+  }
+
+  function toDateStr(value: unknown): string {
+    if (!value) return "";
+    return String(value).slice(0, 10);
+  }
+
+  function isValidDateStr(s: unknown): s is string {
+    return typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+  }
+
+  function asCategoria(v: unknown): Actividad["categoria"] {
+    const cats: Actividad["categoria"][] = ["culto", "estudio", "evento", "ministerio", "social", "otro"];
+    return cats.includes(v as Actividad["categoria"]) ? (v as Actividad["categoria"]) : "otro";
+  }
+
+  function asEstado(v: unknown): Actividad["estado"] {
+    if (v === "cancelada" || v === "realizada" || v === "programada") return v;
+    return "programada";
+  }
+
+  function normalizeActividad(raw: unknown): Actividad | null {
+    const r = (raw ?? {}) as Record<string, unknown>;
+    if (!isValidDateStr(r.fecha)) return null;
+    return {
+      id: Number(r.id) || 0,
+      titulo: String(r.titulo ?? ""),
+      descripcion: r.descripcion == null ? null : String(r.descripcion),
+      lugar: r.lugar == null ? null : String(r.lugar),
+      fecha: toDateStr(r.fecha),
+      hora_inicio: r.hora_inicio == null || r.hora_inicio === "" ? null : String(r.hora_inicio),
+      hora_fin: r.hora_fin == null || r.hora_fin === "" ? null : String(r.hora_fin),
+      categoria: asCategoria(r.categoria),
+      destacado: Boolean(Number(r.destacado) || r.destacado === true),
+      estado: asEstado(r.estado),
+      creado_por_nombre: r.creado_por_nombre == null ? undefined : String(r.creado_por_nombre),
+    };
+  }
+
+  async function fetchActividades(desde: string, hasta: string): Promise<Actividad[]> {
+    const base = getApiBase();
+    const url =
+      base + "/get_actividades.php" +
+      "?desde=" + encodeURIComponent(desde) +
+      "&hasta=" + encodeURIComponent(hasta);
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 9000);
+    try {
+      const res = await fetch(url, {
+        method: "GET",
+        headers: { Accept: "application/json" },
+        signal: controller.signal,
+      });
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (!Array.isArray(data)) throw new Error("Respuesta no válida");
+      return data.map(normalizeActividad).filter((x): x is Actividad => x !== null);
+    } finally {
+      clearTimeout(timeoutId);
+    }
+  }
+
+  function render(actividades: Actividad[]): void {
+    if (headerEl) headerEl.innerHTML = buildResumenHeader(actividades);
+    if (bodyEl) bodyEl.innerHTML = buildResumenHTML(actividades);
+  }
+
+  async function refresh(): Promise<void> {
+    try {
+      const hoy = new Date().toISOString().slice(0, 10);
+      const futuro = new Date();
+      futuro.setMonth(futuro.getMonth() + 6);
+      const hasta = futuro.toISOString().slice(0, 10);
+      const actividades = await fetchActividades(hoy, hasta);
+      render(actividades);
+    } catch (err) {
+      // Si falla, dejamos el seed del SSR. Solo logueamos.
+      console.warn("[resumen] no se pudo refrescar, se mantiene el seed SSR", err);
+    }
+  }
+
+  // Refresco silencioso apenas carga la página (no hay loading).
+  // Si la API trae algo distinto al seed, reemplazamos el HTML.
+  setTimeout(() => {
+    refresh();
+  }, 300);
+
+  // Revalidar al volver a la pestaña / recuperar foco.
+  document.addEventListener("visibilitychange", () => {
+    if (!document.hidden) refresh();
+  });
+  window.addEventListener("focus", refresh);
+</script>

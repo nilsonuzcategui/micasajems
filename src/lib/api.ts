@@ -137,61 +137,6 @@ export async function fetchActividadDetalle(id: number): Promise<Actividad> {
   return normalizeActividad(data);
 }
 
-interface CacheEntry {
-  ts: number;
-  data: Actividad[];
-}
-
-const rangeCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 30 * 1000;
-
-export async function fetchActividadesPorRango(
-  desde: string,
-  hasta: string,
-  opts: { incluirCanceladas?: boolean; bypassCache?: boolean } = {},
-): Promise<Actividad[]> {
-  const key = `${desde}|${hasta}|${opts.incluirCanceladas ? '1' : '0'}`;
-  if (!opts.bypassCache) {
-    const cached = rangeCache.get(key);
-    if (cached && Date.now() - cached.ts < CACHE_TTL_MS) {
-      return cached.data;
-    }
-  }
-  const data = await fetchActividadesRaw({
-    desde,
-    hasta,
-    incluirCanceladas: opts.incluirCanceladas,
-  });
-  rangeCache.set(key, { ts: Date.now(), data });
-  return data;
-}
-
-export function invalidateActividadesCache(): void {
-  rangeCache.clear();
-}
-
-function getJSON<T>(path: string): Promise<T> {
-  const envBase = (import.meta.env.PUBLIC_API_URL ?? '').trim().replace(/\/+$/, '');
-  let url: string;
-  if (envBase === '') {
-    url = path.startsWith('/') ? path : '/' + path;
-  } else {
-    const base = envBase.endsWith('/api') ? envBase : envBase + '/api';
-    const cleanPath = path.startsWith('/') ? path : '/' + path;
-    url = base + cleanPath;
-  }
-  return fetch(url, { headers: { Accept: 'application/json' } }).then(async (res) => {
-    if (!res.ok) throw new Error(`HTTP ${res.status} al pedir ${path}`);
-    const json = await res.json();
-    if (!json.ok) throw new Error(json.error || 'Error desconocido');
-    return json as T;
-  });
-}
-
-export async function logSuscripcion(): Promise<void> {
-  await getJSON<{ ok: true; data: { id: number } }>('/suscripciones');
-}
-
 export function formatHoraCorta(hora: string | null | undefined): string {
   if (!hora) return '';
   return hora.slice(0, 5);

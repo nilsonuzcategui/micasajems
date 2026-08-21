@@ -9,14 +9,12 @@ interface Props {
   mostrarCalendario?: boolean;
   mostrarResumen?: boolean;
   mostrarBotonPush?: boolean;
-  sendpulseAccountId?: string;
 }
 
 const {
   mostrarCalendario = true,
   mostrarResumen = true,
   mostrarBotonPush = true,
-  sendpulseAccountId,
 } = Astro.props;
 
 let actividades: Actividad[] = [];
@@ -66,7 +64,7 @@ try {
 
     {mostrarBotonPush && (
       <div class="mt-12 max-w-3xl mx-auto">
-        <BotonNotificaciones sendpulseAccountId={sendpulseAccountId} />
+        <BotonNotificaciones />
       </div>
     )}
   </div>
