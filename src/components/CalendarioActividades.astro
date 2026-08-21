@@ -276,43 +276,69 @@ const categorias = [
       if (!Array.isArray(data)) {
         throw new Error("Respuesta no válida");
       }
-      const mapped = data.map(toFcEvent).filter(function (e) {
-        return opts.incluirCanceladas || e.extendedProps.estado !== "cancelada";
-      });
+      const mapped = data
+        .map(toFcEvent)
+        .filter(function (e) {
+          return e !== null;
+        })
+        .filter(function (e) {
+          if (opts.incluirCanceladas) return true;
+          return String(e.extendedProps.estado || "").toLowerCase() !== "cancelada";
+        });
       cache.set(key, { ts: Date.now(), data: mapped });
       setUltimaActualizacion(Date.now());
       return mapped;
     }
 
+    function isValidDateStr(s) {
+      return typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+    }
+
+    function isValidTimeStr(s) {
+      if (s == null) return false;
+      const t = String(s);
+      return /^\d{2}:\d{2}(:\d{2})?$/.test(t);
+    }
+
     function toFcEvent(a) {
-      const cat = a.categoria || "otro";
-      const color = CATEGORIA_COLORES[cat] || "#94a3b8";
-      const hasTime = !!a.hora_inicio;
-      const horaTxt = hasTime ? String(a.hora_inicio).slice(0, 5) : "";
-      const destacado = Boolean(Number(a.destacado) || a.destacado === true);
-      return {
-        id: String(a.id),
-        title: horaTxt ? horaTxt + " · " + a.titulo : a.titulo,
-        start: hasTime ? a.fecha + "T" + a.hora_inicio : a.fecha,
-        end: a.hora_fin ? a.fecha + "T" + a.hora_fin : undefined,
-        allDay: !hasTime,
-        backgroundColor: destacado ? "rgba(212, 175, 55, 0.15)" : color,
-        borderColor: destacado ? "#D4AF37" : color,
-        textColor: destacado ? "#D4AF37" : "#0c121e",
-        classNames: destacado ? ["fc-event-destacado"] : [],
-        extendedProps: {
-          lugar: a.lugar || null,
-          descripcion: a.descripcion || null,
-          categoria: cat,
-          destacado: destacado,
-          estado: a.estado || "programada",
-          hora_inicio: a.hora_inicio || null,
-          hora_fin: a.hora_fin || null,
-          creado_por_nombre: a.creado_por_nombre || null,
-          fecha: a.fecha,
-          id: a.id,
-        },
-      };
+      try {
+        if (!a || typeof a !== "object") return null;
+        if (!isValidDateStr(a.fecha)) return null;
+
+        const cat = a.categoria || "otro";
+        const color = CATEGORIA_COLORES[cat] || "#94a3b8";
+        const hasTime = isValidTimeStr(a.hora_inicio);
+        const horaTxt = hasTime ? String(a.hora_inicio).slice(0, 5) : "";
+        const destacado = Boolean(Number(a.destacado) || a.destacado === true);
+        const estado = String(a.estado || "programada").toLowerCase();
+
+        return {
+          id: String(a.id != null ? a.id : "act-" + Math.random().toString(36).slice(2)),
+          title: horaTxt ? horaTxt + " · " + (a.titulo || "") : (a.titulo || "Sin título"),
+          start: hasTime ? a.fecha + "T" + String(a.hora_inicio) : a.fecha,
+          end: a.hora_fin && isValidTimeStr(a.hora_fin) ? a.fecha + "T" + String(a.hora_fin) : undefined,
+          allDay: !hasTime,
+          backgroundColor: destacado ? "rgba(212, 175, 55, 0.15)" : color,
+          borderColor: destacado ? "#D4AF37" : color,
+          textColor: destacado ? "#D4AF37" : "#0c121e",
+          classNames: destacado ? ["fc-event-destacado"] : [],
+          extendedProps: {
+            lugar: a.lugar || null,
+            descripcion: a.descripcion || null,
+            categoria: cat,
+            destacado: destacado,
+            estado: estado,
+            hora_inicio: hasTime ? String(a.hora_inicio) : null,
+            hora_fin: a.hora_fin && isValidTimeStr(a.hora_fin) ? String(a.hora_fin) : null,
+            creado_por_nombre: a.creado_por_nombre || null,
+            fecha: a.fecha,
+            id: a.id,
+          },
+        };
+      } catch (err) {
+        console.warn("[calendario] toFcEvent falló, evento descartado", err, a);
+        return null;
+      }
     }
 
     const CATEGORIA_COLORES = {
@@ -397,12 +423,23 @@ const categorias = [
       };
     }
 
+    function replaceDataSource(id, events) {
+      const existing = calendar.getEventSourceById(id);
+      if (existing) existing.remove();
+      calendar.addEventSource({ id: id, events: events });
+    }
+
+    function clearDataSource(id) {
+      const existing = calendar.getEventSourceById(id);
+      if (existing) existing.remove();
+    }
+
     async function loadRange(opts) {
       const { desde, hasta, key, bypassCache, showLoading } = opts;
       const cached = cache.get(key);
-      if (!bypassCache && cached && Date.now() - cached.ts < 30 * 1000) {
-        calendar.removeAllEvents();
-        calendar.addEventSource(cached.data);
+      if (!bypassCache && cached && Array.isArray(cached.data) && Date.now() - cached.ts < 30 * 1000) {
+        clearDataSource("api");
+        calendar.addEventSource({ id: "api", events: cached.data });
         currentRangeKey = key;
         return;
       }
@@ -413,15 +450,15 @@ const categorias = [
           incluirCanceladas,
           bypassCache: !!bypassCache,
         });
-        // Si el usuario ya navegó a otro rango, descartamos el resultado.
-        if (key === getCurrentRange().key) {
-          calendar.removeAllEvents();
-          calendar.addEventSource(events);
-          currentRangeKey = key;
-        }
+        if (key !== getCurrentRange().key) return;
+        replaceDataSource("api", Array.isArray(events) ? events : []);
+        clearDataSource("ssr");
+        currentRangeKey = key;
       } catch (err) {
         console.warn("[calendario] error cargando rango", desde, hasta, err);
         if (errorEl) errorEl.classList.remove("hidden");
+        // Si la API falla, dejamos la fuente del SSR como fallback para
+        // que el calendario no quede en blanco.
       } finally {
         if (showLoading) setLoading(false);
       }
