@@ -84,6 +84,7 @@ const categorias = [
       <h3 class="text-2xl font-bold text-white">Calendario</h3>
       <p class="text-xs text-slate-400 mt-1">
         Sincronizado con el sistema de gestión de la iglesia.
+        <span id="cal-updated" class="text-slate-500">—</span>
       </p>
     </div>
     <div class="flex items-center gap-3">
@@ -207,6 +208,27 @@ const categorias = [
       });
     }
 
+    const updatedEl = document.getElementById("cal-updated");
+    let ultimaActualizacion = Date.now();
+    function setUltimaActualizacion(ts) {
+      ultimaActualizacion = ts;
+      renderUpdated();
+    }
+    function renderUpdated() {
+      if (!updatedEl) return;
+      const diff = Math.max(0, Math.floor((Date.now() - ultimaActualizacion) / 1000));
+      if (diff < 5) updatedEl.textContent = "· actualizado hace unos segundos";
+      else if (diff < 60) updatedEl.textContent = "· actualizado hace " + diff + "s";
+      else if (diff < 3600)
+        updatedEl.textContent =
+          "· actualizado hace " + Math.floor(diff / 60) + " min";
+      else
+        updatedEl.textContent =
+          "· actualizado hace " + Math.floor(diff / 3600) + " h";
+    }
+    setInterval(renderUpdated, 15000);
+    renderUpdated();
+
     let incluirCanceladas = false;
 
     function toDateStr(value) {
@@ -218,20 +240,11 @@ const categorias = [
       return fecha >= desde && fecha <= hasta;
     }
 
-    function fromInitial(desde, hasta) {
-      if (!initialRange || !initialRange.desde || !initialRange.hasta) return null;
-      if (desde < initialRange.desde || hasta > initialRange.hasta) return null;
-      return initialEvents.filter((ev) => {
-        const f = toDateStr(ev.start);
-        return isInsideRange(f, desde, hasta);
-      });
-    }
-
     async function fetchRange(desde, hasta, opts) {
       opts = opts || {};
       const key = desde + "|" + hasta + "|" + (opts.incluirCanceladas ? "1" : "0");
       const cached = cache.get(key);
-      const TTL = 5 * 60 * 1000;
+      const TTL = 30 * 1000;
       if (!opts.bypassCache && cached && Date.now() - cached.ts < TTL) {
         return cached.data;
       }
@@ -267,6 +280,7 @@ const categorias = [
         return opts.incluirCanceladas || e.extendedProps.estado !== "cancelada";
       });
       cache.set(key, { ts: Date.now(), data: mapped });
+      setUltimaActualizacion(Date.now());
       return mapped;
     }
 
@@ -335,33 +349,6 @@ const categorias = [
         week: "Semana",
         list: "Lista",
       },
-      loading: function (isLoading) {
-        if (!loadingEl) return;
-        if (isLoading) {
-          loadingEl.classList.remove("hidden");
-          loadingEl.classList.add("flex");
-          if (errorEl) errorEl.classList.add("hidden");
-        } else {
-          loadingEl.classList.add("hidden");
-          loadingEl.classList.remove("flex");
-        }
-      },
-      events: async function (fetchInfo) {
-        const desde = toDateStr(fetchInfo.startStr);
-        const hasta = toDateStr(fetchInfo.endStr);
-        const fromInit = fromInitial(desde, hasta);
-        if (fromInit) return fromInit;
-        try {
-          if (errorEl) errorEl.classList.add("hidden");
-          return await fetchRange(desde, hasta, { incluirCanceladas: incluirCanceladas });
-        } catch (err) {
-          console.error("[calendario] error al cargar rango", desde, hasta, err);
-          if (errorEl) {
-            errorEl.classList.remove("hidden");
-          }
-          return [];
-        }
-      },
       eventDidMount: function (info) {
         const p = info.event.extendedProps || {};
         const lines = [];
@@ -385,17 +372,109 @@ const categorias = [
     });
     calendar.render();
 
+    function setLoading(isLoading) {
+      if (!loadingEl) return;
+      if (isLoading) {
+        loadingEl.classList.remove("hidden");
+        loadingEl.classList.add("flex");
+        if (errorEl) errorEl.classList.add("hidden");
+      } else {
+        loadingEl.classList.add("hidden");
+        loadingEl.classList.remove("flex");
+      }
+    }
+
+    let currentRangeKey = null;
+
+    function getCurrentRange() {
+      const view = calendar.view;
+      const desde = toDateStr(view.activeStart.toISOString());
+      const hasta = toDateStr(view.activeEnd.toISOString());
+      return {
+        desde,
+        hasta,
+        key: desde + "|" + hasta + "|" + (incluirCanceladas ? "1" : "0"),
+      };
+    }
+
+    async function loadRange(opts) {
+      const { desde, hasta, key, bypassCache, showLoading } = opts;
+      const cached = cache.get(key);
+      if (!bypassCache && cached && Date.now() - cached.ts < 30 * 1000) {
+        calendar.removeAllEvents();
+        calendar.addEventSource(cached.data);
+        currentRangeKey = key;
+        return;
+      }
+      if (showLoading) setLoading(true);
+      try {
+        if (errorEl) errorEl.classList.add("hidden");
+        const events = await fetchRange(desde, hasta, {
+          incluirCanceladas,
+          bypassCache: !!bypassCache,
+        });
+        // Si el usuario ya navegó a otro rango, descartamos el resultado.
+        if (key === getCurrentRange().key) {
+          calendar.removeAllEvents();
+          calendar.addEventSource(events);
+          currentRangeKey = key;
+        }
+      } catch (err) {
+        console.warn("[calendario] error cargando rango", desde, hasta, err);
+        if (errorEl) errorEl.classList.remove("hidden");
+      } finally {
+        if (showLoading) setLoading(false);
+      }
+    }
+
+    // 1) Pintamos el SSR apenas carga la página (instantáneo, sin loading).
+    if (initialEvents.length > 0) {
+      calendar.addEventSource({ id: "ssr", events: initialEvents });
+      const r0 = getCurrentRange();
+      currentRangeKey = r0.key;
+    }
+
+    // 2) 250 ms después, vamos a la API real para reflejar altas/bajas.
+    setTimeout(function () {
+      const r = getCurrentRange();
+      loadRange({ ...r, bypassCache: true, showLoading: false });
+    }, 250);
+
+    // 3) Al cambiar de mes / semana / vista, recargamos desde la API.
+    calendar.on("datesSet", function () {
+      const r = getCurrentRange();
+      const cached = cache.get(r.key);
+      if (cached && Date.now() - cached.ts < 30 * 1000 && currentRangeKey === r.key) {
+        return;
+      }
+      loadRange({ ...r, bypassCache: false, showLoading: true });
+    });
+
+    function getCurrentRange() {
+      const view = calendar.view;
+      return {
+        desde: toDateStr(view.activeStart.toISOString()),
+        hasta: toDateStr(view.activeEnd.toISOString()),
+      };
+    }
+
+    // Al volver a la pestaña o recuperar el foco, invalidar caché y refetch.
+    function onRevalidateEvent() {
+      cache.clear();
+      const r = getCurrentRange();
+      loadRange({ ...r, bypassCache: true, showLoading: false });
+    }
+    document.addEventListener("visibilitychange", function () {
+      if (!document.hidden) onRevalidateEvent();
+    });
+    window.addEventListener("focus", onRevalidateEvent);
+
     const refreshBtn = document.getElementById("cal-refresh");
     if (refreshBtn) {
       refreshBtn.addEventListener("click", function () {
         cache.clear();
-        if (initialRange && initialRange.desde && initialRange.hasta) {
-          cache.set(initialRange.desde + "|" + initialRange.hasta + "|0", {
-            ts: Date.now(),
-            data: initialEvents,
-          });
-        }
-        calendar.refetchEvents();
+        const r = getCurrentRange();
+        loadRange({ ...r, bypassCache: true, showLoading: true });
       });
     }
 
@@ -403,12 +482,10 @@ const categorias = [
     if (toggleCanceladas) {
       toggleCanceladas.addEventListener("change", function () {
         incluirCanceladas = toggleCanceladas.checked;
-        if (!incluirCanceladas) {
-          for (const k of Array.from(cache.keys())) {
-            if (k.endsWith("|1")) cache.delete(k);
-          }
-        }
-        calendar.refetchEvents();
+        // Limpiamos la caché del modo anterior para forzar fetch fresco.
+        cache.clear();
+        const r = getCurrentRange();
+        loadRange({ ...r, bypassCache: true, showLoading: true });
       });
     }
 

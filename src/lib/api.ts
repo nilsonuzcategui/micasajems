@@ -143,7 +143,7 @@ interface CacheEntry {
 }
 
 const rangeCache = new Map<string, CacheEntry>();
-const CACHE_TTL_MS = 5 * 60 * 1000;
+const CACHE_TTL_MS = 30 * 1000;
 
 export async function fetchActividadesPorRango(
   desde: string,

@@ -16,13 +16,14 @@ const { actividades } = Astro.props;
 const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
 
+const DIAS_ADELANTE = 15;
 const proximaSemana: Actividad[] = [];
 
 for (const a of actividades) {
   if (a.estado === "cancelada") continue;
   const fecha = new Date(a.fecha + "T00:00:00");
   const diffDias = Math.floor((fecha.getTime() - hoy.getTime()) / 86400000);
-  if (diffDias >= 0 && diffDias < 7) {
+  if (diffDias >= 0 && diffDias < DIAS_ADELANTE) {
     proximaSemana.push(a);
   }
 }
@@ -44,7 +45,7 @@ const orderedDays = Object.keys(grouped).sort();
 
 <section class="space-y-3">
   <header class="flex items-baseline justify-between mb-2">
-    <h3 class="text-2xl font-bold text-white">Esta semana</h3>
+    <h3 class="text-2xl font-bold text-white">Próximos 15 días</h3>
     <span class="text-xs text-slate-400 uppercase tracking-wider">
       {proximaSemana.length} {proximaSemana.length === 1 ? "actividad" : "actividades"}
     </span>
@@ -52,7 +53,7 @@ const orderedDays = Object.keys(grouped).sort();
 
   {proximaSemana.length === 0 ? (
     <div class="rounded-2xl border border-dashed border-white/10 p-8 text-center text-slate-400">
-      No hay actividades programadas para los próximos 7 días.
+      No hay actividades programadas para los próximos {DIAS_ADELANTE} días.
     </div>
   ) : (
     <div class="space-y-4">
