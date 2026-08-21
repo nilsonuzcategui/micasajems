@@ -2,6 +2,7 @@
 import type { Actividad } from "../lib/api";
 import {
   formatFechaLarga,
+  formatHoraCorta,
   categoriaLabel,
   categoriaColor,
 } from "../lib/api";
@@ -16,21 +17,27 @@ const hoy = new Date();
 hoy.setHours(0, 0, 0, 0);
 
 const proximaSemana: Actividad[] = [];
-const mes: Actividad[] = [];
 
 for (const a of actividades) {
+  if (a.estado === "cancelada") continue;
   const fecha = new Date(a.fecha + "T00:00:00");
   const diffDias = Math.floor((fecha.getTime() - hoy.getTime()) / 86400000);
   if (diffDias >= 0 && diffDias < 7) {
     proximaSemana.push(a);
   }
-  mes.push(a);
 }
 
 const grouped: Record<string, Actividad[]> = {};
 for (const a of proximaSemana) {
   grouped[a.fecha] ??= [];
   grouped[a.fecha].push(a);
+}
+for (const key of Object.keys(grouped)) {
+  grouped[key].sort((a, b) => {
+    const ha = a.hora_inicio ?? "";
+    const hb = b.hora_inicio ?? "";
+    return ha.localeCompare(hb);
+  });
 }
 const orderedDays = Object.keys(grouped).sort();
 ---
@@ -58,12 +65,18 @@ const orderedDays = Object.keys(grouped).sort();
             {grouped[fecha].map((a) => (
               <li class="px-5 py-4 flex gap-4 hover:bg-white/[0.02] transition">
                 <div class="shrink-0 w-16 text-center">
-                  <p class="text-2xl font-bold text-white leading-none">
-                    {a.hora_inicio.split(":")[0]}<span class="text-[#D4AF37]">:</span>{a.hora_inicio.split(":")[1]}
-                  </p>
-                  <p class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">
-                    {a.hora_fin ? `–${a.hora_fin}` : "hs"}
-                  </p>
+                  {a.hora_inicio ? (
+                    <>
+                      <p class="text-2xl font-bold text-white leading-none">
+                        {formatHoraCorta(a.hora_inicio).split(":")[0]}<span class="text-[#D4AF37]">:</span>{formatHoraCorta(a.hora_inicio).split(":")[1]}
+                      </p>
+                      <p class="text-[10px] text-slate-500 uppercase tracking-wider mt-1">
+                        {a.hora_fin ? `–${formatHoraCorta(a.hora_fin)}` : "hs"}
+                      </p>
+                    </>
+                  ) : (
+                    <p class="text-xs text-slate-400 uppercase tracking-wider">Todo el día</p>
+                  )}
                 </div>
                 <div class="flex-1 min-w-0">
                   <div class="flex items-start gap-2 flex-wrap">
