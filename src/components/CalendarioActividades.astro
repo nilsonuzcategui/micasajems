@@ -8,74 +8,44 @@ interface Props {
 
 const { actividades } = Astro.props;
 
-interface CalendarEvent {
-  id: string;
-  title: string;
-  start: string;
-  end?: string;
-  allDay: boolean;
-  backgroundColor: string;
-  borderColor: string;
-  textColor: string;
-  classNames: string[];
-  extendedProps: {
-    lugar: string | null;
-    descripcion: string | null;
-    categoria: Actividad["categoria"];
-    destacado: boolean;
-    estado: Actividad["estado"];
-    hora_inicio: string | null;
-    hora_fin: string | null;
-    creado_por_nombre?: string;
-    fecha: string;
-  };
-}
-
-const eventosVisibles = actividades.filter((a) => a.estado !== "cancelada");
-
-const events: CalendarEvent[] = eventosVisibles.map((a) => {
-  const color = categoriaColor(a.categoria);
-  const hasTime = !!a.hora_inicio;
-  const horaTxt = a.hora_inicio ? a.hora_inicio.slice(0, 5) : "";
-  return {
-    id: String(a.id),
-    title: horaTxt ? `${horaTxt} · ${a.titulo}` : a.titulo,
-    start: hasTime ? `${a.fecha}T${a.hora_inicio}` : a.fecha,
-    end: a.hora_fin ? `${a.fecha}T${a.hora_fin}` : undefined,
-    allDay: !hasTime,
-    backgroundColor: a.destacado ? "rgba(212, 175, 55, 0.15)" : color,
-    borderColor: a.destacado ? "#D4AF37" : color,
-    textColor: a.destacado ? "#D4AF37" : "#0c121e",
-    classNames: a.destacado ? ["fc-event-destacado"] : [],
-    extendedProps: {
-      lugar: a.lugar,
-      descripcion: a.descripcion,
-      categoria: a.categoria,
-      destacado: a.destacado,
-      estado: a.estado,
-      hora_inicio: a.hora_inicio,
-      hora_fin: a.hora_fin,
-      creado_por_nombre: a.creado_por_nombre,
-      fecha: a.fecha,
-    },
-  };
-});
-
-let minFecha = "";
-let maxFecha = "";
-for (const a of eventosVisibles) {
-  if (!minFecha || a.fecha < minFecha) minFecha = a.fecha;
-  if (!maxFecha || a.fecha > maxFecha) maxFecha = a.fecha;
-}
-
-const categorias = [
-  { value: "culto", label: "Culto", color: categoriaColor("culto") },
-  { value: "estudio", label: "Estudio", color: categoriaColor("estudio") },
-  { value: "evento", label: "Evento", color: categoriaColor("evento") },
-  { value: "ministerio", label: "Ministerio", color: categoriaColor("ministerio") },
-  { value: "social", label: "Social", color: categoriaColor("social") },
-  { value: "otro", label: "Otro", color: categoriaColor("otro") },
+const LEYENDA = [
+  { value: "culto", label: "Culto" },
+  { value: "estudio", label: "Estudio" },
+  { value: "evento", label: "Evento" },
+  { value: "ministerio", label: "Ministerio" },
+  { value: "social", label: "Social" },
+  { value: "otro", label: "Otro" },
 ];
+
+const events = actividades
+  .filter((a) => a.estado !== "cancelada")
+  .map((a) => {
+    const color = categoriaColor(a.categoria);
+    const hasTime = !!a.hora_inicio;
+    const hora = a.hora_inicio?.slice(0, 5) ?? "";
+    return {
+      id: String(a.id),
+      title: hora ? `${hora} · ${a.titulo}` : a.titulo,
+      start: hasTime ? `${a.fecha}T${a.hora_inicio}` : a.fecha,
+      end: a.hora_fin ? `${a.fecha}T${a.hora_fin}` : undefined,
+      allDay: !hasTime,
+      backgroundColor: a.destacado ? "rgba(212, 175, 55, 0.15)" : color,
+      borderColor: a.destacado ? "#D4AF37" : color,
+      textColor: a.destacado ? "#D4AF37" : "#0c121e",
+      classNames: a.destacado ? ["fc-event-destacado"] : [],
+      extendedProps: {
+        lugar: a.lugar,
+        descripcion: a.descripcion,
+        categoria: a.categoria,
+        destacado: a.destacado,
+        estado: a.estado,
+        hora_inicio: a.hora_inicio,
+        hora_fin: a.hora_fin,
+        creado_por_nombre: a.creado_por_nombre,
+        fecha: a.fecha,
+      },
+    };
+  });
 ---
 
 <section class="space-y-3">
@@ -103,7 +73,12 @@ const categorias = [
         title="Refrescar actividades del rango visible"
       >
         <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path>
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"
+          ></path>
         </svg>
         Refrescar
       </button>
@@ -111,22 +86,21 @@ const categorias = [
   </header>
 
   <div class="flex flex-wrap gap-2 text-[11px]">
-    {categorias.map((c) => (
-      <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 text-slate-300">
-        <span class="w-2 h-2 rounded-full" style={`background:${c.color}`}></span>
-        {c.label}
-      </span>
-    ))}
+    {
+      LEYENDA.map((c) => (
+        <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-white/5 text-slate-300">
+          <span class="w-2 h-2 rounded-full" style={`background:${categoriaColor(c.value)}`} />
+          {c.label}
+        </span>
+      ))
+    }
     <span class="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37]">
       <span class="w-2 h-2 rounded-full bg-[#D4AF37]"></span>
       Destacado
     </span>
   </div>
 
-  <div
-    id="calendario-actividades"
-    class="rounded-2xl border border-white/5 bg-[#0c121e]/60 p-4 min-h-[600px] relative"
-  >
+  <div id="calendario-actividades" class="rounded-2xl border border-white/5 bg-[#0c121e]/60 p-4 min-h-[600px] relative">
     <div
       id="cal-loading"
       class="hidden absolute inset-0 z-20 bg-[#0c121e]/30 backdrop-blur-[2px] rounded-2xl flex items-center justify-center pointer-events-none"
@@ -146,7 +120,6 @@ const categorias = [
   </div>
 </section>
 
-<!-- Modal de detalle -->
 <div
   id="cal-modal"
   class="hidden fixed inset-0 z-[100] items-center justify-center p-4 bg-black/70 backdrop-blur-sm"
@@ -165,8 +138,12 @@ const categorias = [
     </button>
 
     <div class="flex items-start gap-2 mb-2">
-      <span id="cal-modal-cat" class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-semibold"></span>
-      <span id="cal-modal-dest" class="hidden text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] font-semibold">
+      <span id="cal-modal-cat" class="text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full font-semibold"
+      ></span>
+      <span
+        id="cal-modal-dest"
+        class="hidden text-[10px] uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#D4AF37]/15 text-[#D4AF37] font-semibold"
+      >
         Destacado
       </span>
     </div>
@@ -187,180 +164,19 @@ const categorias = [
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.css" />
 <script is:inline src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-<script
-  is:inline
-  define:vars={{
-    initialEvents: events,
-    initialRange: { desde: minFecha, hasta: maxFecha },
-  }}
->
+<script is:inline define:vars={{ initialEvents: events }}>
   (function () {
     const el = document.getElementById("calendario-actividades");
-    const loadingEl = document.getElementById("cal-loading");
-    const errorEl = document.getElementById("cal-error");
     if (!el || !window.FullCalendar) return;
 
-    // Fuente única: arrancamos con los eventos del SSR (instantáneo) y
-    // vamos reemplazando en el lugar cuando llega la respuesta de la API.
-    // Así nunca se borra el calendario: si la API falla o devuelve [],
-    // queda lo último válido (SSR o API previa).
     const SOURCE_ID = "api";
-    const seedEvents = Array.isArray(initialEvents) ? initialEvents : [];
+    const API_BASE = "https://api.micasajems.com/api";
+    const CACHE_TTL = 30_000;
+    const FETCH_TIMEOUT = 9_000;
+    const DAY_MS = 86_400_000;
+    const DEFAULT_COLOR = "#94a3b8";
 
-    // Caché por rango (30s) para no re-pegar la misma ventana.
-    const cache = new Map();
-    if (initialRange && initialRange.desde && initialRange.hasta) {
-      cache.set(initialRange.desde + "|" + initialRange.hasta + "|0", {
-        ts: Date.now(),
-        data: seedEvents,
-      });
-    }
-
-    const updatedEl = document.getElementById("cal-updated");
-    let ultimaActualizacion = Date.now();
-    function setUltimaActualizacion(ts) {
-      ultimaActualizacion = ts;
-      renderUpdated();
-    }
-    function renderUpdated() {
-      if (!updatedEl) return;
-      const diff = Math.max(0, Math.floor((Date.now() - ultimaActualizacion) / 1000));
-      if (diff < 5) updatedEl.textContent = "· actualizado hace unos segundos";
-      else if (diff < 60) updatedEl.textContent = "· actualizado hace " + diff + "s";
-      else if (diff < 3600)
-        updatedEl.textContent =
-          "· actualizado hace " + Math.floor(diff / 60) + " min";
-      else
-        updatedEl.textContent =
-          "· actualizado hace " + Math.floor(diff / 3600) + " h";
-    }
-    setInterval(renderUpdated, 15000);
-    renderUpdated();
-
-    let incluirCanceladas = false;
-    // Gate para no mostrar el overlay ni refetchear durante el primer
-    // render del calendario (FullCalendar dispara datesSet apenas
-    // termina render()).
-    let initialDone = false;
-
-    function toDateStr(value) {
-      if (!value) return "";
-      return String(value).slice(0, 10);
-    }
-
-    function getCurrentRange() {
-      const view = calendar.view;
-      const desde = toDateStr(view.activeStart.toISOString());
-      const hasta = toDateStr(view.activeEnd.toISOString());
-      return {
-        desde,
-        hasta,
-        key: desde + "|" + hasta + "|" + (incluirCanceladas ? "1" : "0"),
-      };
-    }
-
-    async function fetchRange(desde, hasta, opts) {
-      opts = opts || {};
-      const key = desde + "|" + hasta + "|" + (opts.incluirCanceladas ? "1" : "0");
-      const cached = cache.get(key);
-      const TTL = 30 * 1000;
-      if (!opts.bypassCache && cached && Date.now() - cached.ts < TTL) {
-        return cached.data;
-      }
-      const url =
-        "https://api.micasajems.com/api/get_actividades.php" +
-        "?desde=" +
-        encodeURIComponent(desde) +
-        "&hasta=" +
-        encodeURIComponent(hasta) +
-        (opts.incluirCanceladas ? "&incluir_canceladas=1" : "");
-      const controller = new AbortController();
-      const timeoutId = setTimeout(function () {
-        controller.abort();
-      }, 9000);
-      let res;
-      try {
-        res = await fetch(url, {
-          method: "GET",
-          headers: { Accept: "application/json" },
-          signal: controller.signal,
-        });
-      } finally {
-        clearTimeout(timeoutId);
-      }
-      if (!res.ok) {
-        throw new Error("HTTP " + res.status);
-      }
-      const data = await res.json();
-      if (!Array.isArray(data)) {
-        throw new Error("Respuesta no válida");
-      }
-      const mapped = data
-        .map(toFcEvent)
-        .filter(function (e) {
-          return e !== null;
-        })
-        .filter(function (e) {
-          if (opts.incluirCanceladas) return true;
-          return String(e.extendedProps.estado || "").toLowerCase() !== "cancelada";
-        });
-      cache.set(key, { ts: Date.now(), data: mapped });
-      setUltimaActualizacion(Date.now());
-      return mapped;
-    }
-
-    function isValidDateStr(s) {
-      return typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
-    }
-
-    function isValidTimeStr(s) {
-      if (s == null) return false;
-      const t = String(s);
-      return /^\d{2}:\d{2}(:\d{2})?$/.test(t);
-    }
-
-    function toFcEvent(a) {
-      try {
-        if (!a || typeof a !== "object") return null;
-        if (!isValidDateStr(a.fecha)) return null;
-
-        const cat = a.categoria || "otro";
-        const color = CATEGORIA_COLORES[cat] || "#94a3b8";
-        const hasTime = isValidTimeStr(a.hora_inicio);
-        const horaTxt = hasTime ? String(a.hora_inicio).slice(0, 5) : "";
-        const destacado = Boolean(Number(a.destacado) || a.destacado === true);
-        const estado = String(a.estado || "programada").toLowerCase();
-
-        return {
-          id: String(a.id != null ? a.id : "act-" + Math.random().toString(36).slice(2)),
-          title: horaTxt ? horaTxt + " · " + (a.titulo || "") : (a.titulo || "Sin título"),
-          start: hasTime ? a.fecha + "T" + String(a.hora_inicio) : a.fecha,
-          end: a.hora_fin && isValidTimeStr(a.hora_fin) ? a.fecha + "T" + String(a.hora_fin) : undefined,
-          allDay: !hasTime,
-          backgroundColor: destacado ? "rgba(212, 175, 55, 0.15)" : color,
-          borderColor: destacado ? "#D4AF37" : color,
-          textColor: destacado ? "#D4AF37" : "#0c121e",
-          classNames: destacado ? ["fc-event-destacado"] : [],
-          extendedProps: {
-            lugar: a.lugar || null,
-            descripcion: a.descripcion || null,
-            categoria: cat,
-            destacado: destacado,
-            estado: estado,
-            hora_inicio: hasTime ? String(a.hora_inicio) : null,
-            hora_fin: a.hora_fin && isValidTimeStr(a.hora_fin) ? String(a.hora_fin) : null,
-            creado_por_nombre: a.creado_por_nombre || null,
-            fecha: a.fecha,
-            id: a.id,
-          },
-        };
-      } catch (err) {
-        console.warn("[calendario] toFcEvent falló, evento descartado", err, a);
-        return null;
-      }
-    }
-
-    const CATEGORIA_COLORES = {
+    const COLORES = {
       culto: "#D4AF37",
       estudio: "#60a5fa",
       evento: "#f472b6",
@@ -368,8 +184,7 @@ const categorias = [
       social: "#34d399",
       otro: "#94a3b8",
     };
-
-    const CATEGORIA_LABELS = {
+    const ETIQUETAS = {
       culto: "Culto",
       estudio: "Estudio Bíblico",
       evento: "Evento",
@@ -377,6 +192,86 @@ const categorias = [
       social: "Acción Social",
       otro: "Otro",
     };
+    const DIAS = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
+    const MESES = [
+      "enero",
+      "febrero",
+      "marzo",
+      "abril",
+      "mayo",
+      "junio",
+      "julio",
+      "agosto",
+      "septiembre",
+      "octubre",
+      "noviembre",
+      "diciembre",
+    ];
+
+    const ICON_CALENDAR =
+      '<svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg>';
+    const ICON_PIN =
+      '<svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>';
+
+    const $ = (id) => document.getElementById(id);
+    const toDateStr = (v) => (v ? String(v).slice(0, 10) : "");
+    const isValidDate = (s) => typeof s === "string" && /^\d{4}-\d{2}-\d{2}$/.test(s);
+    const isValidTime = (s) => s != null && /^\d{2}:\d{2}(:\d{2})?$/.test(String(s));
+    const sameIds = (a, b) => a.size === b.size && [...a].every((id) => b.has(id));
+    const escapeHtml = (s) =>
+      String(s).replace(
+        /[&<>"']/g,
+        (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c],
+      );
+    const formatFechaLarga = (f) => {
+      if (!f) return "";
+      const d = new Date(f + "T00:00:00");
+      return `${DIAS[d.getDay()]} ${d.getDate()} de ${MESES[d.getMonth()]} de ${d.getFullYear()}`;
+    };
+
+    const loadingEl = $("cal-loading");
+    const errorEl = $("cal-error");
+    const updatedEl = $("cal-updated");
+
+    const cache = new Map();
+    const lastValidByRange = new Map();
+    const seedEvents = Array.isArray(initialEvents) ? initialEvents : [];
+    let lastEventIds = new Set(seedEvents.map((e) => String(e.id)));
+    let incluirCanceladas = false;
+    let initialDone = false;
+    let ultimaActualizacion = Date.now();
+
+    function toFcEvent(a) {
+      if (!a || !isValidDate(a.fecha)) return null;
+      const cat = a.categoria || "otro";
+      const color = COLORES[cat] || DEFAULT_COLOR;
+      const hasTime = isValidTime(a.hora_inicio);
+      const destacado = Number(a.destacado) > 0 || a.destacado === true;
+      const hora = hasTime ? String(a.hora_inicio).slice(0, 5) : "";
+      return {
+        id: String(a.id ?? `act-${Math.random().toString(36).slice(2)}`),
+        title: hora ? `${hora} · ${a.titulo || ""}` : a.titulo || "Sin título",
+        start: hasTime ? `${a.fecha}T${a.hora_inicio}` : a.fecha,
+        end: isValidTime(a.hora_fin) ? `${a.fecha}T${a.hora_fin}` : undefined,
+        allDay: !hasTime,
+        backgroundColor: destacado ? "rgba(212, 175, 55, 0.15)" : color,
+        borderColor: destacado ? "#D4AF37" : color,
+        textColor: destacado ? "#D4AF37" : "#0c121e",
+        classNames: destacado ? ["fc-event-destacado"] : [],
+        extendedProps: {
+          lugar: a.lugar ?? null,
+          descripcion: a.descripcion ?? null,
+          categoria: cat,
+          destacado,
+          estado: String(a.estado || "programada").toLowerCase(),
+          hora_inicio: hasTime ? String(a.hora_inicio) : null,
+          hora_fin: isValidTime(a.hora_fin) ? String(a.hora_fin) : null,
+          creado_por_nombre: a.creado_por_nombre ?? null,
+          fecha: a.fecha,
+          id: a.id,
+        },
+      };
+    }
 
     const calendar = new FullCalendar.Calendar(el, {
       initialView: "dayGridMonth",
@@ -388,16 +283,10 @@ const categorias = [
         center: "title",
         right: "dayGridMonth,timeGridWeek,listWeek",
       },
-      buttonText: {
-        today: "Hoy",
-        month: "Mes",
-        week: "Semana",
-        list: "Lista",
-      },
-      eventDidMount: function (info) {
+      buttonText: { today: "Hoy", month: "Mes", week: "Semana", list: "Lista" },
+      eventDidMount(info) {
         const p = info.event.extendedProps || {};
-        const lines = [];
-        lines.push(info.event.title);
+        const lines = [info.event.title];
         if (p.lugar) lines.push("📍 " + p.lugar);
         if (p.estado === "cancelada") lines.push("❌ CANCELADA");
         if (p.destacado) lines.push("⭐ Destacado");
@@ -407,219 +296,211 @@ const categorias = [
           info.el.style.opacity = "0.7";
         }
       },
-      eventClick: function (info) {
+      eventClick(info) {
         info.jsEvent.preventDefault();
         openModal(info.event);
       },
-      noEventsContent: function () {
-        return "No hay actividades programadas en este rango.";
-      },
+      noEventsContent: () => "No hay actividades programadas en este rango.",
     });
     calendar.render();
 
-    function setLoading(isLoading) {
-      if (!loadingEl) return;
-      if (isLoading) {
-        loadingEl.classList.remove("hidden");
-        loadingEl.classList.add("flex");
-        if (errorEl) errorEl.classList.add("hidden");
-      } else {
-        loadingEl.classList.add("hidden");
-        loadingEl.classList.remove("flex");
+    const getCurrentRange = () => {
+      const v = calendar.view;
+      const desde = toDateStr(v.activeStart.toISOString());
+      const hasta = toDateStr(v.activeEnd.toISOString());
+      return { desde, hasta, key: `${desde}|${hasta}|${incluirCanceladas ? 1 : 0}` };
+    };
+    const isCurrentView = (key) => {
+      try {
+        return getCurrentRange().key === key;
+      } catch {
+        return false;
       }
-    }
-
-    let currentRangeKey = null;
-
-    function setSourceEvents(events) {
-      // Reemplaza in-place los eventos de la única fuente. Nunca la
-      // eliminamos, así el calendario nunca queda en blanco.
+    };
+    const setSourceEvents = (evts) => {
       const src = calendar.getEventSourceById(SOURCE_ID);
-      if (src && typeof src.removeAllEvents === "function") {
-        src.removeAllEvents();
-        if (Array.isArray(events)) {
-          events.forEach(function (ev) {
-            calendar.addEvent(ev);
-          });
-        }
-      } else {
-        // Fallback para versiones viejas: removemos y volvemos a agregar.
-        if (src) src.remove();
-        calendar.addEventSource({ id: SOURCE_ID, events: events || [] });
-      }
-    }
+      if (src) src.remove();
+      calendar.addEventSource({ id: SOURCE_ID, events: evts || [] });
+    };
+    const setLoading = (on) => {
+      if (!loadingEl) return;
+      loadingEl.classList.toggle("hidden", !on);
+      loadingEl.classList.toggle("flex", on);
+      if (on && errorEl) errorEl.classList.add("hidden");
+    };
+    const markUpdated = () => {
+      ultimaActualizacion = Date.now();
+      renderUpdated();
+    };
+    const renderUpdated = () => {
+      if (!updatedEl) return;
+      const d = Math.max(0, Math.floor((Date.now() - ultimaActualizacion) / 1000));
+      let txt = "· actualizado hace ";
+      if (d < 5) txt += "unos segundos";
+      else if (d < 60) txt += d + "s";
+      else if (d < 3600) txt += Math.floor(d / 60) + " min";
+      else txt += Math.floor(d / 3600) + " h";
+      updatedEl.textContent = txt;
+    };
+    setInterval(renderUpdated, 15000);
+    renderUpdated();
 
-    function isCurrentRange(key) {
-      return currentRangeKey === null || currentRangeKey === key;
-    }
-
-    async function loadRange(opts) {
-      const { desde, hasta, key, bypassCache, showLoading } = opts;
+    async function fetchRange(desde, hasta, opts = {}) {
+      const key = `${desde}|${hasta}|${opts.incluirCanceladas ? 1 : 0}`;
       const cached = cache.get(key);
-      if (
-        !bypassCache &&
-        cached &&
-        Array.isArray(cached.data) &&
-        Date.now() - cached.ts < 30 * 1000
-      ) {
-        // Hit de caché → pintamos sin mostrar overlay y marcamos el rango actual.
-        if (isCurrentRange(key)) {
+      if (!opts.bypassCache && cached && Date.now() - cached.ts < CACHE_TTL) {
+        return cached.data;
+      }
+      const url =
+        `${API_BASE}/get_actividades.php?desde=${encodeURIComponent(desde)}&hasta=${encodeURIComponent(hasta)}` +
+        (opts.incluirCanceladas ? "&incluir_canceladas=1" : "");
+      const ctrl = new AbortController();
+      const timeout = setTimeout(() => ctrl.abort(), FETCH_TIMEOUT);
+      let res;
+      try {
+        res = await fetch(url, { method: "GET", headers: { Accept: "application/json" }, signal: ctrl.signal });
+      } finally {
+        clearTimeout(timeout);
+      }
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      if (!Array.isArray(data)) throw new Error("Respuesta no válida");
+      const mapped = data
+        .map(toFcEvent)
+        .filter(Boolean)
+        .filter((e) => opts.incluirCanceladas || e.extendedProps.estado !== "cancelada");
+      cache.set(key, { ts: Date.now(), data: mapped });
+      markUpdated();
+      return mapped;
+    }
+
+    async function loadRange({ desde, hasta, key, bypassCache, showLoading }) {
+      const cached = cache.get(key);
+      if (!bypassCache && cached && Date.now() - cached.ts < CACHE_TTL) {
+        if (isCurrentView(key)) {
           setSourceEvents(cached.data);
-          currentRangeKey = key;
+          lastEventIds = new Set(cached.data.map((e) => String(e.id)));
         }
         return;
       }
       if (showLoading) setLoading(true);
       try {
         if (errorEl) errorEl.classList.add("hidden");
-        const events = await fetchRange(desde, hasta, {
-          incluirCanceladas,
-          bypassCache: !!bypassCache,
-        });
-        if (!isCurrentRange(key)) return;
-        // Si la API devuelve un array (incluso vacío), actualizamos en sitio.
-        // Nunca dejamos la fuente vacía por error o respuesta vacía: en esos
-        // casos mantenemos lo último válido (seed SSR o respuesta previa).
-        if (Array.isArray(events)) {
-          cache.set(key, { ts: Date.now(), data: events });
+        const events = await fetchRange(desde, hasta, { incluirCanceladas, bypassCache: !!bypassCache });
+        if (!isCurrentView(key)) return;
+        if (!Array.isArray(events)) return;
+        if (events.length === 0 && lastValidByRange.has(key)) return;
+        cache.set(key, { ts: Date.now(), data: events });
+        if (events.length > 0) lastValidByRange.set(key, events);
+        const newIds = new Set(events.map((e) => String(e.id)));
+        if (!sameIds(newIds, lastEventIds)) {
           setSourceEvents(events);
-          currentRangeKey = key;
-          setUltimaActualizacion(Date.now());
+          lastEventIds = newIds;
         }
+        markUpdated();
       } catch (err) {
         console.warn("[calendario] error cargando rango", desde, hasta, err);
-        if (isCurrentRange(key) && errorEl) errorEl.classList.remove("hidden");
-        // Fallback: no tocamos la fuente → queda lo último válido.
+        if (isCurrentView(key) && errorEl) errorEl.classList.remove("hidden");
       } finally {
         if (showLoading) setLoading(false);
       }
     }
 
-    // 1) Pintamos el seed (eventos del SSR) apenas carga la página.
-    calendar.addEventSource({ id: SOURCE_ID, events: seedEvents });
-    {
-      const r0 = getCurrentRange();
-      currentRangeKey = r0.key;
+    function revalidate(showLoading) {
+      cache.clear();
+      const r = getCurrentRange();
+      loadRange({ ...r, bypassCache: true, showLoading });
     }
 
-    // 2) Refresco silencioso contra la API para reflejar altas/bajas.
-    //    No mostramos overlay: el usuario ya ve el seed del SSR.
-    setTimeout(function () {
-      const r = getCurrentRange();
-      loadRange({ ...r, bypassCache: true, showLoading: false });
-      initialDone = true;
-    }, 250);
+    calendar.addEventSource({ id: SOURCE_ID, events: seedEvents });
 
-    // 3) Al cambiar de mes / semana / vista, recargamos desde la API,
-    //    pero solo después del primer render (sino el datesSet inicial
-    //    dispara el overlay y tapa el calendario).
-    calendar.on("datesSet", function () {
+    // **********************************************
+    // *** CODIGO QUE HACIA CRASHEAR EL CALENDARIO
+    // **********************************************
+    // setTimeout(() => {
+    //   loadRange({ ...getCurrentRange(), bypassCache: true, showLoading: false });
+    //   initialDone = true;
+    // }, 250);
+
+    calendar.on("datesSet", () => {
       if (!initialDone) return;
+      const view = calendar.view;
+      if (view && (view.type === "timeGridWeek" || view.type === "listWeek")) {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        const start = view.activeStart instanceof Date ? view.activeStart : new Date(view.activeStart);
+        if (Math.abs(start - today) / DAY_MS > 7) {
+          calendar.today();
+          return;
+        }
+      }
       const r = getCurrentRange();
       const cached = cache.get(r.key);
-      if (cached && Date.now() - cached.ts < 30 * 1000 && currentRangeKey === r.key) {
-        return;
-      }
+      if (cached && Date.now() - cached.ts < CACHE_TTL) return;
       loadRange({ ...r, bypassCache: false, showLoading: true });
     });
 
-    // Al volver a la pestaña o recuperar el foco, invalidar caché y refetch.
-    function onRevalidateEvent() {
-      cache.clear();
-      const r = getCurrentRange();
-      loadRange({ ...r, bypassCache: true, showLoading: false });
-    }
-    document.addEventListener("visibilitychange", function () {
-      if (!document.hidden) onRevalidateEvent();
+    document.addEventListener("visibilitychange", () => {
+      if (!document.hidden) revalidate(false);
     });
-    window.addEventListener("focus", onRevalidateEvent);
+    window.addEventListener("focus", () => revalidate(false));
+    $("cal-refresh")?.addEventListener("click", () => revalidate(true));
+    $("cal-toggle-canceladas")?.addEventListener("change", (e) => {
+      incluirCanceladas = e.target.checked;
+      revalidate(true);
+    });
 
-    const refreshBtn = document.getElementById("cal-refresh");
-    if (refreshBtn) {
-      refreshBtn.addEventListener("click", function () {
-        cache.clear();
-        const r = getCurrentRange();
-        loadRange({ ...r, bypassCache: true, showLoading: true });
-      });
-    }
-
-    const toggleCanceladas = document.getElementById("cal-toggle-canceladas");
-    if (toggleCanceladas) {
-      toggleCanceladas.addEventListener("change", function () {
-        incluirCanceladas = toggleCanceladas.checked;
-        // Limpiamos la caché del modo anterior para forzar fetch fresco.
-        cache.clear();
-        const r = getCurrentRange();
-        loadRange({ ...r, bypassCache: true, showLoading: true });
-      });
-    }
-
-    const modal = document.getElementById("cal-modal");
-    const modalClose = document.getElementById("cal-modal-close");
-    const mTitle = document.getElementById("cal-modal-title");
-    const mCat = document.getElementById("cal-modal-cat");
-    const mDest = document.getElementById("cal-modal-dest");
-    const mDate = document.getElementById("cal-modal-date");
-    const mLugar = document.getElementById("cal-modal-lugar");
-    const mDescWrap = document.getElementById("cal-modal-desc-wrap");
-    const mDesc = document.getElementById("cal-modal-desc");
-    const mCreador = document.getElementById("cal-modal-creador");
+    const modal = $("cal-modal");
+    const M = {
+      title: $("cal-modal-title"),
+      cat: $("cal-modal-cat"),
+      dest: $("cal-modal-dest"),
+      date: $("cal-modal-date"),
+      lugar: $("cal-modal-lugar"),
+      descWrap: $("cal-modal-desc-wrap"),
+      desc: $("cal-modal-desc"),
+      creador: $("cal-modal-creador"),
+    };
 
     function openModal(event) {
       const p = event.extendedProps || {};
-      if (mTitle) mTitle.textContent = event.title.replace(/^\d{1,2}:\d{2}\s·\s/, "");
+      if (M.title) M.title.textContent = event.title.replace(/^\d{1,2}:\d{2}\s·\s/, "");
 
-      if (mCat) {
-        const color = CATEGORIA_COLORES[p.categoria] || "#94a3b8";
-        mCat.textContent = CATEGORIA_LABELS[p.categoria] || p.categoria;
-        mCat.style.background = color + "22";
-        mCat.style.color = color;
+      if (M.cat) {
+        const color = COLORES[p.categoria] || DEFAULT_COLOR;
+        M.cat.textContent = ETIQUETAS[p.categoria] || p.categoria;
+        M.cat.style.background = color + "22";
+        M.cat.style.color = color;
       }
-      if (mDest) {
-        if (p.destacado) mDest.classList.remove("hidden");
-        else mDest.classList.add("hidden");
-      }
-      if (mDate) {
-        const fechaLarga = formatFechaLarga(p.fecha);
+      M.dest?.classList.toggle("hidden", !p.destacado);
+
+      if (M.date) {
         const hora =
           p.hora_inicio && p.hora_fin
-            ? p.hora_inicio.slice(0, 5) + " – " + p.hora_fin.slice(0, 5)
+            ? `${p.hora_inicio.slice(0, 5)} – ${p.hora_fin.slice(0, 5)}`
             : p.hora_inicio
-              ? p.hora_inicio.slice(0, 5) + " hs"
+              ? `${p.hora_inicio.slice(0, 5)} hs`
               : "Todo el día";
-        mDate.innerHTML =
-          '<svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"></path></svg><span>' +
-          fechaLarga +
-          " · " +
-          hora +
-          "</span>";
+        M.date.innerHTML = `${ICON_CALENDAR}<span>${formatFechaLarga(p.fecha)} · ${hora}</span>`;
       }
-      if (mLugar) {
+      if (M.lugar) {
         if (p.lugar) {
-          mLugar.classList.remove("hidden");
-          mLugar.innerHTML =
-            '<svg class="w-4 h-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg><span>' +
-            escapeHtml(p.lugar) +
-            "</span>";
+          M.lugar.classList.remove("hidden");
+          M.lugar.innerHTML = `${ICON_PIN}<span>${escapeHtml(p.lugar)}</span>`;
         } else {
-          mLugar.classList.add("hidden");
+          M.lugar.classList.add("hidden");
         }
       }
-      if (mDesc && mDescWrap) {
-        if (p.descripcion) {
-          mDesc.textContent = p.descripcion;
-          mDescWrap.classList.remove("hidden");
-        } else {
-          mDesc.textContent = "Cargando detalle…";
-          mDescWrap.classList.remove("hidden");
-        }
+      if (M.desc && M.descWrap) {
+        M.descWrap.classList.remove("hidden");
+        M.desc.textContent = p.descripcion || "Cargando detalle…";
       }
-      if (mCreador) {
+      if (M.creador) {
         if (p.creado_por_nombre) {
-          mCreador.textContent = "Publicada por " + p.creado_por_nombre;
-          mCreador.classList.remove("hidden");
+          M.creador.textContent = "Publicada por " + p.creado_por_nombre;
+          M.creador.classList.remove("hidden");
         } else {
-          mCreador.classList.add("hidden");
+          M.creador.classList.add("hidden");
         }
       }
 
@@ -630,77 +511,43 @@ const categorias = [
       }
 
       if (p.id) {
-        const id = p.id;
-        const url =
-          "https://api.micasajems.com/api/get_actividad.php?id=" + encodeURIComponent(String(id));
-        fetch(url, { headers: { Accept: "application/json" } })
-          .then(function (r) {
+        fetch(`${API_BASE}/get_actividad.php?id=${encodeURIComponent(String(p.id))}`, {
+          headers: { Accept: "application/json" },
+        })
+          .then((r) => {
             if (!r.ok) throw new Error("HTTP " + r.status);
             return r.json();
           })
-          .then(function (full) {
+          .then((full) => {
             if (!full || typeof full !== "object") return;
-            if (mDesc && full.descripcion) {
-              mDesc.textContent = full.descripcion;
-            }
-            if (full.creado_por_nombre && mCreador) {
-              mCreador.textContent = "Publicada por " + full.creado_por_nombre;
-              mCreador.classList.remove("hidden");
+            if (M.desc && full.descripcion) M.desc.textContent = full.descripcion;
+            if (full.creado_por_nombre && M.creador) {
+              M.creador.textContent = "Publicada por " + full.creado_por_nombre;
+              M.creador.classList.remove("hidden");
             }
           })
-          .catch(function (err) {
+          .catch((err) => {
             console.warn("[calendario] no se pudo obtener el detalle", err);
-            if (mDesc && !p.descripcion) {
-              mDesc.textContent = "No se pudo obtener la descripción completa.";
+            if (M.desc && !p.descripcion) {
+              M.desc.textContent = "No se pudo obtener la descripción completa.";
             }
           });
       }
     }
 
-    function closeModal() {
+    const closeModal = () => {
       if (!modal) return;
       modal.classList.add("hidden");
       modal.classList.remove("flex");
       modal.setAttribute("aria-hidden", "true");
-    }
-
-    if (modalClose) modalClose.addEventListener("click", closeModal);
-    if (modal) {
-      modal.addEventListener("click", function (e) {
-        if (e.target === modal) closeModal();
-      });
-    }
-    document.addEventListener("keydown", function (e) {
+    };
+    $("cal-modal-close")?.addEventListener("click", closeModal);
+    modal?.addEventListener("click", (e) => {
+      if (e.target === modal) closeModal();
+    });
+    document.addEventListener("keydown", (e) => {
       if (e.key === "Escape") closeModal();
     });
-
-    function formatFechaLarga(fecha) {
-      if (!fecha) return "";
-      const d = new Date(fecha + "T00:00:00");
-      const dias = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
-      const meses = [
-        "enero", "febrero", "marzo", "abril", "mayo", "junio",
-        "julio", "agosto", "septiembre", "octubre", "noviembre", "diciembre",
-      ];
-      return (
-        dias[d.getDay()] +
-        " " +
-        d.getDate() +
-        " de " +
-        meses[d.getMonth()] +
-        " de " +
-        d.getFullYear()
-      );
-    }
-
-    function escapeHtml(s) {
-      return String(s)
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#39;");
-    }
   })();
 </script>
 
@@ -748,7 +595,7 @@ const categorias = [
   }
   #calendario-actividades .fc-event-destacado {
     font-weight: 700;
-    box-shadow: 0 0 0 1px #D4AF37;
+    box-shadow: 0 0 0 1px #d4af37;
   }
   #calendario-actividades .fc-list-day-cushion {
     background: rgba(212, 175, 55, 0.1) !important;
