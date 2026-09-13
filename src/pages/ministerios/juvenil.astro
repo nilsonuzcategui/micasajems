@@ -25,29 +25,73 @@ const actividades = [
 
 const PUNTOS_ASISTENCIA = 10;
 const PUNTOS_PARTICIPACION = 5;
-const PUNTOS_BONO_DINAMICA = 25;
 
 const ranking = [
-  { nombre: "Enio", asistencia: true, participacion: false, bonus: 0 },
-  { nombre: "Naya", asistencia: true, participacion: false, bonus: PUNTOS_BONO_DINAMICA },
-  // { nombre: "Leudi", asistencia: true, participacion: false, bonus: 0 },
-  { nombre: "Reyber", asistencia: true, participacion: true, bonus: PUNTOS_BONO_DINAMICA },
-  { nombre: "Angelo", asistencia: true, participacion: false, bonus: 0 },
-  { nombre: "Alexander", asistencia: true, participacion: false, bonus: PUNTOS_BONO_DINAMICA },
-  { nombre: "Franklin", asistencia: true, participacion: true, bonus: 0 },
-  { nombre: "Nana", asistencia: true, participacion: false, bonus: 0 },
-  { nombre: "Erika", asistencia: true, participacion: true, bonus: 0 },
-  { nombre: "Efranny", asistencia: true, participacion: false, bonus: 0 },
-  { nombre: "Kate", asistencia: true, participacion: true, bonus: 0 },
-  { nombre: "Richelis", asistencia: true, participacion: true, bonus: 0 },
-  { nombre: "Jonas", asistencia: true, participacion: true, bonus: 0 },
-  { nombre: "Sariel", asistencia: true, participacion: true, bonus: PUNTOS_BONO_DINAMICA },
-  { nombre: "David", asistencia: true, participacion: true, bonus: 0 },
-  { nombre: "Aranza", asistencia: true, participacion: true, bonus: 0 },
-  { nombre: "Jonathan", asistencia: true, participacion: true, bonus: 0 },
+  { nombre: "Enio", asistencia: true, participacion: false, bonos: [] },
+  { nombre: "Naya", asistencia: true, participacion: false, bonos: [{ motivo: "Dinámica", puntos: 25 }] },
+  { nombre: "Reyba", asistencia: true, participacion: true, bonos: [] },
+  { nombre: "Leudi", asistencia: true, participacion: false, bonos: [] },
+  {
+    nombre: "Reyber",
+    asistencia: true,
+    participacion: true,
+    bonos: [
+      { motivo: "Dinámica", puntos: 25 },
+      { motivo: "Doctrina", puntos: 10 },
+    ],
+  },
+  { nombre: "Angelo", asistencia: true, participacion: false, bonos: [] },
+  {
+    nombre: "Alexander",
+    asistencia: true,
+    participacion: false,
+    bonos: [{ motivo: "Dinámica", puntos: 25 }],
+  },
+  { nombre: "Franklin", asistencia: true, participacion: true, bonos: [] },
+  { nombre: "Nana", asistencia: true, participacion: false, bonos: [] },
+  {
+    nombre: "Erika",
+    asistencia: true,
+    participacion: true,
+    bonos: [{ motivo: "Doctrina", puntos: 10 }],
+  },
+  {
+    nombre: "Efranny",
+    asistencia: true,
+    participacion: false,
+    bonos: [{ motivo: "Doctrina", puntos: 10 }],
+  },
+  { nombre: "Kate", asistencia: true, participacion: true, bonos: [] },
+  { nombre: "Richelis", asistencia: true, participacion: true, bonos: [] },
+  { nombre: "Jonas", asistencia: true, participacion: true, bonos: [] },
+  {
+    nombre: "Sariel",
+    asistencia: true,
+    participacion: true,
+    bonos: [
+      { motivo: "Dinámica", puntos: 25 },
+      { motivo: "Doctrina", puntos: 10 },
+    ],
+  },
+  { nombre: "David", asistencia: true, participacion: true, bonos: [] },
+  {
+    nombre: "Aranza",
+    asistencia: true,
+    participacion: true,
+    bonos: [{ motivo: "Doctrina", puntos: 10 }],
+  },
+  {
+    nombre: "Jonathan",
+    asistencia: true,
+    participacion: true,
+    bonos: [{ motivo: "Doctrina", puntos: 10 }],
+  },
 ].map((j) => ({
   ...j,
-  puntos: (j.asistencia ? PUNTOS_ASISTENCIA : 0) + (j.participacion ? PUNTOS_PARTICIPACION : 0) + j.bonus,
+  puntos:
+    (j.asistencia ? PUNTOS_ASISTENCIA : 0) +
+    (j.participacion ? PUNTOS_PARTICIPACION : 0) +
+    j.bonos.reduce((acc, b) => acc + b.puntos, 0),
 }));
 
 ranking.sort((a, b) => b.puntos - a.puntos || a.nombre.localeCompare(b.nombre));
@@ -410,7 +454,7 @@ ranking.sort((a, b) => b.puntos - a.puntos || a.nombre.localeCompare(b.nombre));
                         <span class="hidden sm:inline">Participación</span>
                       </span>
                     )}
-                    {joven.bonus > 0 && (
+                    {joven.bonos.map((bono) => (
                       <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-amber-200 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full">
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -420,9 +464,9 @@ ranking.sort((a, b) => b.puntos - a.puntos || a.nombre.localeCompare(b.nombre));
                         >
                           <path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
                         </svg>
-                        <span class="hidden sm:inline">Bono Dinámica</span>
+                        <span class="hidden sm:inline">{bono.motivo}</span>
                       </span>
-                    )}
+                    ))}
                   </div>
                 </div>
                 <div class="text-right shrink-0">
