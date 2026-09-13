@@ -1,5 +1,5 @@
 ---
-import { Image, type ImageMetadata } from "astro:assets";
+import { Image, getImage, type ImageMetadata } from "astro:assets";
 import Footer from "../../components/Footer.astro";
 import Header from "../../components/Header.astro";
 import Layout from "../../layouts/Layout.astro";
@@ -58,6 +58,12 @@ const iniciales = (nombre: string) =>
     .replace(/[\u0300-\u036f]/g, "")
     .substring(0, 2)
     .toUpperCase();
+
+const urlsJovenesFull: Record<string, string> = {};
+for (const [nombre, img] of Object.entries(fotosJovenes)) {
+  const { src } = await getImage({ src: img, width: 800, height: 800 });
+  urlsJovenesFull[nombre] = src;
+}
 
 const ranking = [
   // domingo 13/09
@@ -149,12 +155,88 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                   </div>
                 ))
               }
-            </div>
-          </div>
+</div>
         </div>
       </div>
     </div>
+
+    <dialog
+      id="foto-modal"
+      class="bg-transparent p-0 m-auto rounded-3xl overflow-visible max-w-[min(90vw,520px)] backdrop:bg-black/85 backdrop:backdrop-blur-md"
+    >
+      <div class="relative">
+        <button
+          id="foto-modal-close"
+          type="button"
+          class="absolute -top-3 -right-3 z-10 w-10 h-10 rounded-full bg-[#0c121e] border-2 border-[#D4AF37] text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-[#0c121e] transition-colors shadow-xl"
+          aria-label="Cerrar"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-5 h-5"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+          </svg>
+        </button>
+        <div class="rounded-3xl overflow-hidden bg-[#0c121e] border-2 border-[#D4AF37]/40 shadow-[0_0_80px_-10px_rgba(212,175,55,0.5)]">
+          <img id="foto-modal-img" src="" alt="" class="block w-full h-auto max-h-[75vh] object-cover" />
+          <div class="px-5 py-4 bg-gradient-to-t from-[#0c121e] to-[#101829] border-t border-white/5">
+            <p id="foto-modal-nombre" class="text-white font-black italic text-xl md:text-2xl text-center"></p>
+          </div>
+        </div>
+      </div>
+    </dialog>
   </section>
+
+  <script>
+    const modal = document.getElementById("foto-modal") as HTMLDialogElement | null;
+    const modalImg = document.getElementById("foto-modal-img") as HTMLImageElement | null;
+    const modalNombre = document.getElementById("foto-modal-nombre") as HTMLParagraphElement | null;
+    const modalClose = document.getElementById("foto-modal-close");
+
+    if (modal && modalImg && modalNombre) {
+      document.querySelectorAll<HTMLButtonElement>("[data-foto-nombre][data-foto-src]").forEach((btn) => {
+        btn.addEventListener("click", () => {
+          const nombre = btn.dataset.fotoNombre || "";
+          const src = btn.dataset.fotoSrc || "";
+          if (!src) return;
+          modalImg.src = src;
+          modalImg.alt = nombre;
+          modalNombre.textContent = nombre;
+          modal.showModal();
+        });
+      });
+
+      modalClose?.addEventListener("click", () => modal.close());
+
+      modal.addEventListener("click", (e) => {
+        const rect = modal.getBoundingClientRect();
+        const insideContent = e.clientX >= rect.left && e.clientX <= rect.right &&
+          e.clientY >= rect.top && e.clientY <= rect.bottom;
+        if (!insideContent) modal.close();
+      });
+
+      modal.addEventListener("close", () => {
+        modalImg.src = "";
+        modalImg.alt = "";
+      });
+    }
+  </script>
+
+  <style>
+    dialog#foto-modal {
+      border: none;
+    }
+    dialog#foto-modal::backdrop {
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
+    }
+  </style>
 
   <section class="py-24 bg-[#0c121e]">
     <div class="container mx-auto px-6">
@@ -372,23 +454,46 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                   <div class={`text-[10px] md:text-xs font-bold uppercase tracking-[0.3em] mb-4 md:mb-5 ${medal.text}`}>
                     {medal.label}
                   </div>
-                  <div
-                    class={`w-28 h-28 md:w-36 md:h-36 rounded-full bg-gradient-to-br ${medal.color} p-[3px] mb-5 md:mb-6 shadow-xl`}
+                  <button
+                    type="button"
+                    class={`w-28 h-28 md:w-36 md:h-36 rounded-full bg-gradient-to-br ${medal.color} p-[3px] mb-5 md:mb-6 shadow-xl border-0 cursor-pointer disabled:cursor-default disabled:opacity-60 transition-transform hover:scale-105 hover:shadow-2xl focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c121e] group ${
+                      fotosJovenes[joven.nombre] ? "" : "pointer-events-none"
+                    }`}
+                    data-foto-nombre={joven.nombre}
+                    data-foto-src={urlsJovenesFull[joven.nombre] || ""}
+                    aria-label={fotosJovenes[joven.nombre]
+                      ? `Ver foto de ${joven.nombre}`
+                      : joven.nombre}
+                    disabled={!fotosJovenes[joven.nombre]}
                   >
-                    <div class="w-full h-full rounded-full overflow-hidden bg-[#0c121e] flex items-center justify-center">
+                    <div class="w-full h-full rounded-full overflow-hidden bg-[#0c121e] flex items-center justify-center relative">
                       {fotosJovenes[joven.nombre] ? (
-                        <Image
-                          src={fotosJovenes[joven.nombre]}
-                          alt={joven.nombre}
-                          width={288}
-                          height={288}
-                          class="w-full h-full object-cover"
-                        />
+                        <>
+                          <Image
+                            src={fotosJovenes[joven.nombre]}
+                            alt={joven.nombre}
+                            width={288}
+                            height={288}
+                            class="w-full h-full object-cover"
+                          />
+                          <div class="absolute inset-0 bg-black/0 group-hover:bg-black/30 transition-colors flex items-center justify-center">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              fill="none"
+                              viewBox="0 0 24 24"
+                              stroke-width="2"
+                              stroke="currentColor"
+                              class="w-8 h-8 md:w-10 md:h-10 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                            >
+                              <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                            </svg>
+                          </div>
+                        </>
                       ) : (
                         <span class={`text-3xl md:text-4xl font-black ${medal.text}`}>{iniciales(joven.nombre)}</span>
                       )}
                     </div>
-                  </div>
+                  </button>
                   <h3 class="text-2xl md:text-3xl font-black text-white italic mb-2 text-center break-words max-w-full">
                     {joven.nombre}
                   </h3>
@@ -423,8 +528,9 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                 >
                   {idx + 1}
                 </div>
-                <div
-                  class={`shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full p-[2px] ${
+                <button
+                  type="button"
+                  class={`shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full p-[2px] border-0 cursor-pointer disabled:cursor-default disabled:opacity-60 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#101829] group ${
                     idx < 3
                       ? "bg-gradient-to-br " +
                         (idx === 0
@@ -433,24 +539,44 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                             ? "from-slate-200 to-slate-400"
                             : "from-amber-600 to-amber-800")
                       : "bg-white/10"
-                  }`}
+                  } ${fotosJovenes[joven.nombre] ? "" : "pointer-events-none"}`}
+                  data-foto-nombre={joven.nombre}
+                  data-foto-src={urlsJovenesFull[joven.nombre] || ""}
+                  aria-label={fotosJovenes[joven.nombre]
+                    ? `Ver foto de ${joven.nombre}`
+                    : joven.nombre}
+                  disabled={!fotosJovenes[joven.nombre]}
                 >
-                  <div class="w-full h-full rounded-full overflow-hidden bg-[#0c121e] flex items-center justify-center">
+                  <div class="w-full h-full rounded-full overflow-hidden bg-[#0c121e] flex items-center justify-center relative">
                     {fotosJovenes[joven.nombre] ? (
-                      <Image
-                        src={fotosJovenes[joven.nombre]}
-                        alt={joven.nombre}
-                        width={112}
-                        height={112}
-                        class="w-full h-full object-cover"
-                      />
+                      <>
+                        <Image
+                          src={fotosJovenes[joven.nombre]}
+                          alt={joven.nombre}
+                          width={112}
+                          height={112}
+                          class="w-full h-full object-cover"
+                        />
+                        <div class="absolute inset-0 bg-black/0 group-hover:bg-black/40 transition-colors flex items-center justify-center">
+                          <svg
+                            xmlns="http://www.w3.org/2000/svg"
+                            fill="none"
+                            viewBox="0 0 24 24"
+                            stroke-width="2.5"
+                            stroke="currentColor"
+                            class="w-4 h-4 md:w-5 md:h-5 text-white opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3.75v4.5m0-4.5h4.5m-4.5 0L9 9M3.75 20.25v-4.5m0 4.5h4.5m-4.5 0L9 15M20.25 3.75h-4.5m4.5 0v4.5m0-4.5L15 9m5.25 11.25h-4.5m4.5 0v-4.5m0 4.5L15 15" />
+                          </svg>
+                        </div>
+                      </>
                     ) : (
                       <span class={`text-xs md:text-sm font-black ${idx < 3 ? "text-[#D4AF37]" : "text-white/60"}`}>
                         {iniciales(joven.nombre)}
                       </span>
                     )}
                   </div>
-                </div>
+                </button>
                 <div class="flex-1 min-w-0">
                   <div class="text-white font-semibold italic truncate">{joven.nombre}</div>
                   <div class="flex flex-wrap gap-1.5 mt-1">
