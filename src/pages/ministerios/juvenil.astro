@@ -70,34 +70,237 @@ for (const [nombre, img] of Object.entries(fotosJovenes)) {
   urlsJovenesFull[nombre] = src;
 }
 
-const ranking = [
+type Punto = { motivo: string; puntos: number };
+type RankingEntry = {
+  nombre: string;
+  asistencia: boolean;
+  participacion: boolean;
+  ganador: boolean;
+  puntos: Punto[];
+};
+
+const sumarPuntos = (puntos: Punto[]) => puntos.reduce((acc, p) => acc + p.puntos, 0);
+
+const ranking: RankingEntry[] = [
   // domingo 13/09
-  { nombre: "Alexander", asistencia: true, participacion: false, ganador: false, total: 10 },
-  { nombre: "Angelo", asistencia: true, participacion: false, ganador: false, total: 20 },
-  { nombre: "Aranza", asistencia: true, participacion: true, ganador: false, total: 35 },
-  { nombre: "Cristian", asistencia: false, participacion: false, ganador: false, total: 10 },
-  { nombre: "David", asistencia: true, participacion: true, ganador: false, total: 15 },
-  { nombre: "Efranny", asistencia: true, participacion: false, ganador: false, total: 30 },
-  { nombre: "Enio", asistencia: true, participacion: false, ganador: true, total: 45 },
-  { nombre: "Erika", asistencia: true, participacion: true, ganador: false, total: 35 },
-  { nombre: "Franklin", asistencia: true, participacion: true, ganador: false, total: 25 },
-  { nombre: "Jonas", asistencia: true, participacion: true, ganador: false, total: 25 },
-  { nombre: "Jonathan", asistencia: true, participacion: true, ganador: false, total: 35 },
-  { nombre: "Kate", asistencia: true, participacion: true, ganador: false, total: 15 },
-  { nombre: "Nana", asistencia: true, participacion: false, ganador: false, total: 10 },
-  { nombre: "Naya", asistencia: true, participacion: false, ganador: true, total: 35 },
-  { nombre: "Nicol", asistencia: false, participacion: false, ganador: false, total: 10 },
-  { nombre: "Mariannys", asistencia: false, participacion: false, ganador: false, total: 10 },
-  { nombre: "Reyber", asistencia: true, participacion: true, ganador: true, total: 60 },
-  { nombre: "Reynaldo", asistencia: false, participacion: false, ganador: false, total: 10 },
-  { nombre: "Richelis", asistencia: true, participacion: true, ganador: false, total: 25 },
-  { nombre: "Samuel", asistencia: false, participacion: false, ganador: false, total: 10 },
-  { nombre: "Sariel", asistencia: true, participacion: true, ganador: true, total: 60 },
-  { nombre: "Victoria", asistencia: false, participacion: false, ganador: false, total: 10 },
-  { nombre: "Ysmael", asistencia: false, participacion: false, ganador: false, total: 10 },
+  {
+    nombre: "Alexander",
+    asistencia: true,
+    participacion: false,
+    ganador: false,
+    puntos: [{ motivo: "Asistencia", puntos: 10 }],
+  },
+  {
+    nombre: "Angelo",
+    asistencia: true,
+    participacion: false,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia", puntos: 10 },
+      { motivo: "Asistencia Dominical", puntos: 10 },
+    ],
+  },
+  {
+    nombre: "Aranza",
+    asistencia: true,
+    participacion: true,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia", puntos: 30 },
+      { motivo: "Participación", puntos: 5 },
+      { motivo: "Culto de oración", puntos: 10 },
+    ],
+  },
+  {
+    nombre: "Cristian",
+    asistencia: false,
+    participacion: false,
+    ganador: false,
+    puntos: [{ motivo: "Asistencia Sábado", puntos: 10 }],
+  },
+  {
+    nombre: "David",
+    asistencia: true,
+    participacion: true,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia Sábado", puntos: 10 },
+      { motivo: "Participación", puntos: 5 },
+    ],
+  },
+  {
+    nombre: "Efranny",
+    asistencia: true,
+    participacion: false,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia Sábado", puntos: 10 },
+      { motivo: "Asistencia Doctrina", puntos: 10 },
+      { motivo: "Asistencia Domingo", puntos: 10 },
+    ],
+  },
+  {
+    nombre: "Enio",
+    asistencia: true,
+    participacion: false,
+    ganador: true,
+    puntos: [
+      { motivo: "Asistencia", puntos: 20 },
+      { motivo: "Ganador", puntos: 25 },
+    ],
+  },
+  {
+    nombre: "Erika",
+    asistencia: true,
+    participacion: true,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia Sábado", puntos: 10 },
+      { motivo: "Ganadora Reto", puntos: 25 },
+      { motivo: "Apoyo Mantenimiento", puntos: 10 },
+    ],
+  },
+  {
+    nombre: "Franklin",
+    asistencia: true,
+    participacion: true,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia", puntos: 20 },
+      { motivo: "Participación", puntos: 5 },
+    ],
+  },
+  {
+    nombre: "Jonas",
+    asistencia: true,
+    participacion: true,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia", puntos: 20 },
+      { motivo: "Participación", puntos: 5 },
+    ],
+  },
+  {
+    nombre: "Jonathan",
+    asistencia: true,
+    participacion: true,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia", puntos: 20 },
+      { motivo: "Participación", puntos: 5 },
+      { motivo: "Culto de oración", puntos: 10 },
+    ],
+  },
+  {
+    nombre: "Kate",
+    asistencia: true,
+    participacion: true,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia", puntos: 20 },
+      { motivo: "Participación", puntos: 5 },
+    ],
+  },
+  {
+    nombre: "Nana",
+    asistencia: true,
+    participacion: false,
+    ganador: false,
+    puntos: [{ motivo: "Asistencia", puntos: 30 }],
+  },
+  {
+    nombre: "Naya",
+    asistencia: true,
+    participacion: false,
+    ganador: true,
+    puntos: [
+      { motivo: "Asistencia", puntos: 30 },
+      { motivo: "Ganador", puntos: 25 },
+    ],
+  },
+  {
+    nombre: "Nicol",
+    asistencia: false,
+    participacion: false,
+    ganador: false,
+    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+  },
+  {
+    nombre: "Mariannys",
+    asistencia: false,
+    participacion: false,
+    ganador: false,
+    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+  },
+  {
+    nombre: "Reyber",
+    asistencia: true,
+    participacion: true,
+    ganador: true,
+    puntos: [
+      { motivo: "Asistencia", puntos: 30 },
+      { motivo: "Participación", puntos: 5 },
+      { motivo: "Ganador", puntos: 25 },
+      { motivo: "Apoyo Mantenimiento", puntos: 10 },
+    ],
+  },
+  {
+    nombre: "Reynaldo",
+    asistencia: false,
+    participacion: false,
+    ganador: false,
+    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+  },
+  {
+    nombre: "Richelis",
+    asistencia: true,
+    participacion: true,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia", puntos: 20 },
+      { motivo: "Participación", puntos: 5 },
+      { motivo: "Culto de oración", puntos: 10 },
+    ],
+  },
+  {
+    nombre: "Samuel",
+    asistencia: false,
+    participacion: false,
+    ganador: false,
+    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+  },
+  {
+    nombre: "Sariel",
+    asistencia: true,
+    participacion: true,
+    ganador: true,
+    puntos: [
+      { motivo: "Asistencia", puntos: 30 },
+      { motivo: "Participación", puntos: 5 },
+      { motivo: "Ganador", puntos: 25 },
+      { motivo: "Culto de oración", puntos: 10 },
+    ],
+  },
+  {
+    nombre: "Victoria",
+    asistencia: false,
+    participacion: false,
+    ganador: false,
+    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+  },
+  {
+    nombre: "Ysmael",
+    asistencia: false,
+    participacion: false,
+    ganador: false,
+    puntos: [
+      { motivo: "Asistencia Dominical", puntos: 10 },
+      { motivo: "Apoyo Mantenimiento", puntos: 10 },
+    ],
+  },
 ];
 
-ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
+ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre.localeCompare(b.nombre));
 ---
 
 <Layout title="Generación de Relevo | JEMS">
@@ -199,51 +402,240 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
           </div>
         </div>
       </dialog>
+
+      <dialog
+        id="desglose-modal"
+        class="bg-transparent p-0 m-auto rounded-3xl overflow-visible max-w-[min(92vw,460px)] backdrop:bg-black/85 backdrop:backdrop-blur-md"
+      >
+        <div class="relative">
+          <button
+            id="desglose-modal-close"
+            type="button"
+            class="absolute -top-3 -right-3 z-20 w-10 h-10 rounded-full bg-[#0c121e] border-2 border-[#D4AF37] text-[#D4AF37] flex items-center justify-center hover:bg-[#D4AF37] hover:text-[#0c121e] transition-colors shadow-xl"
+            aria-label="Cerrar"
+          >
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke-width="2.5"
+              stroke="currentColor"
+              class="w-5 h-5"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12"></path>
+            </svg>
+          </button>
+          <div
+            class="rounded-3xl overflow-hidden bg-[#0c121e] border-2 border-[#D4AF37]/40 shadow-[0_0_80px_-10px_rgba(212,175,55,0.5)]"
+          >
+            <div id="desglose-modal-foto-wrap" class="relative bg-[#101829]">
+              <img id="desglose-modal-img" src="" alt="" class="block w-full h-60 md:h-72 object-cover" />
+              <div
+                id="desglose-modal-foto-fallback"
+                class="absolute inset-0 hidden items-center justify-center bg-gradient-to-br from-[#101829] to-[#0c121e]"
+              >
+                <span id="desglose-modal-iniciales" class="text-5xl md:text-6xl font-black text-[#D4AF37]"></span>
+              </div>
+              <div class="absolute inset-0 bg-gradient-to-t from-[#0c121e] via-transparent to-transparent"></div>
+              <p
+                id="desglose-modal-nombre"
+                class="absolute bottom-3 left-0 right-0 text-center text-white font-black italic text-2xl md:text-3xl px-4"
+              >
+              </p>
+            </div>
+            <div class="p-5 md:p-6 bg-[#0c121e] border-t border-white/5">
+              <div class="flex items-center justify-between mb-4">
+                <span class="text-[10px] md:text-xs uppercase tracking-[0.3em] text-[#D4AF37] font-bold">
+                  Desglose de Puntos
+                </span>
+                <div class="flex items-baseline gap-1.5">
+                  <span id="desglose-modal-total" class="text-2xl md:text-3xl font-black text-[#D4AF37]"> </span>
+                  <span class="text-[10px] uppercase tracking-widest text-white/40">pts</span>
+                </div>
+              </div>
+              <ul
+                id="desglose-modal-lista"
+                class="divide-y divide-white/5 border-t border-white/5 max-h-[40vh] md:max-h-[45vh] overflow-y-auto"
+              >
+              </ul>
+            </div>
+          </div>
+        </div>
+      </dialog>
     </div>
 
     <script>
-      const modal = document.getElementById("foto-modal") as HTMLDialogElement | null;
-      const modalImg = document.getElementById("foto-modal-img") as HTMLImageElement | null;
-      const modalNombre = document.getElementById("foto-modal-nombre") as HTMLParagraphElement | null;
-      const modalClose = document.getElementById("foto-modal-close");
+      const fotoModal = document.getElementById("foto-modal") as HTMLDialogElement | null;
+      const fotoModalImg = document.getElementById("foto-modal-img") as HTMLImageElement | null;
+      const fotoModalNombre = document.getElementById("foto-modal-nombre") as HTMLParagraphElement | null;
+      const fotoModalClose = document.getElementById("foto-modal-close");
 
-      if (modal && modalImg && modalNombre) {
+      if (fotoModal && fotoModalImg && fotoModalNombre) {
         document.querySelectorAll<HTMLButtonElement>("[data-foto-nombre][data-foto-src]").forEach((btn) => {
-          btn.addEventListener("click", () => {
+          btn.addEventListener("click", (e) => {
+            e.stopPropagation();
             const nombre = btn.dataset.fotoNombre || "";
             const src = btn.dataset.fotoSrc || "";
             if (!src) return;
-            modalImg.src = src;
-            modalImg.alt = nombre;
-            modalNombre.textContent = nombre;
-            modal.showModal();
+            fotoModalImg.src = src;
+            fotoModalImg.alt = nombre;
+            fotoModalNombre.textContent = nombre;
+            fotoModal.showModal();
           });
         });
 
-        modalClose?.addEventListener("click", () => modal.close());
+        fotoModalClose?.addEventListener("click", () => fotoModal.close());
 
-        modal.addEventListener("click", (e) => {
-          const rect = modal.getBoundingClientRect();
+        fotoModal.addEventListener("click", (e) => {
+          const rect = fotoModal.getBoundingClientRect();
           const insideContent =
             e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
-          if (!insideContent) modal.close();
+          if (!insideContent) fotoModal.close();
         });
 
-        modal.addEventListener("close", () => {
-          modalImg.src = "";
-          modalImg.alt = "";
+        fotoModal.addEventListener("close", () => {
+          fotoModalImg.src = "";
+          fotoModalImg.alt = "";
+        });
+      }
+
+      const desgloseModal = document.getElementById("desglose-modal") as HTMLDialogElement | null;
+      const desgloseImg = document.getElementById("desglose-modal-img") as HTMLImageElement | null;
+      const desgloseFotoFallback = document.getElementById("desglose-modal-foto-fallback");
+      const desgloseIniciales =
+        document.getElementById("desglose-modal-inicial") ||
+        (document.getElementById("desglose-modal-iniciales") as HTMLElement | null);
+      const desgloseNombre = document.getElementById("desglose-modal-nombre") as HTMLElement | null;
+      const desgloseTotal = document.getElementById("desglose-modal-total") as HTMLElement | null;
+      const desgloseLista = document.getElementById("desglose-modal-lista") as HTMLElement | null;
+      const desgloseClose = document.getElementById("desglose-modal-close");
+
+      const motivoColor: Record<string, { text: string; bg: string; dot: string; label: string }> = {
+        Asistencia: { text: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10", dot: "bg-[#D4AF37]", label: "Asistencia" },
+        Participación: {
+          text: "text-purple-300",
+          bg: "bg-purple-400/10",
+          dot: "bg-purple-400",
+          label: "Participación",
+        },
+        Ganador: { text: "text-amber-200", bg: "bg-amber-400/15", dot: "bg-amber-400", label: "Ganador" },
+        Constancia: { text: "text-slate-300", bg: "bg-white/5", dot: "bg-slate-400", label: "Constancia" },
+      };
+
+      const iniciales = (nombre: string) =>
+        nombre
+          .normalize("NFD")
+          .replace(/[\u0300-\u036f]/g, "")
+          .substring(0, 2)
+          .toUpperCase();
+
+      if (desgloseModal && desgloseImg && desgloseNombre && desgloseTotal && desgloseLista) {
+        const abrirDesglose = (row: HTMLElement) => {
+          const nombre = row.dataset.rowNombre || "";
+          const src = row.dataset.rowSrc || "";
+          const total = row.dataset.rowTotal || "0";
+          const puntosJson = row.dataset.rowPuntos || "[]";
+          let puntos: { motivo: string; puntos: number }[] = [];
+          try {
+            puntos = JSON.parse(puntosJson);
+          } catch {
+            puntos = [];
+          }
+
+          desgloseNombre.textContent = nombre;
+          desgloseTotal.textContent = total;
+
+          if (desgloseIniciales) desgloseIniciales.textContent = iniciales(nombre);
+
+          if (src) {
+            desgloseImg.src = src;
+            desgloseImg.alt = nombre;
+            desgloseImg.classList.remove("hidden");
+            desgloseFotoFallback?.classList.add("hidden");
+          } else {
+            desgloseImg.src = "";
+            desgloseImg.alt = "";
+            desgloseImg.classList.add("hidden");
+            desgloseFotoFallback?.classList.remove("hidden");
+            desgloseFotoFallback?.classList.add("flex");
+          }
+
+          desgloseLista.innerHTML = "";
+          puntos
+            .slice()
+            .reverse()
+            .forEach((p) => {
+              const cfg = motivoColor[p.motivo] || {
+                text: "text-white",
+                bg: "bg-white/5",
+                dot: "bg-white/40",
+                label: p.motivo,
+              };
+              const li = document.createElement("li");
+              li.className = "flex items-center gap-3 py-2.5";
+              li.innerHTML = `
+              <span class="shrink-0 w-9 h-9 rounded-lg ${cfg.bg} flex items-center justify-center">
+                <span class="w-2 h-2 rounded-full ${cfg.dot}"></span>
+              </span>
+              <span class="flex-1 text-white text-sm md:text-base">${cfg.label}</span>
+              <span class="${cfg.text} font-black text-base md:text-lg tabular-nums">+${p.puntos}</span>
+            `;
+              desgloseLista.appendChild(li);
+            });
+
+          desgloseModal.showModal();
+        };
+
+        document.querySelectorAll<HTMLElement>("[data-row-nombre][data-row-puntos]").forEach((row) => {
+          row.addEventListener("click", () => abrirDesglose(row));
+          row.addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              abrirDesglose(row);
+            }
+          });
+        });
+
+        desgloseClose?.addEventListener("click", () => desgloseModal.close());
+
+        desgloseModal.addEventListener("click", (e) => {
+          const rect = desgloseModal.getBoundingClientRect();
+          const insideContent =
+            e.clientX >= rect.left && e.clientX <= rect.right && e.clientY >= rect.top && e.clientY <= rect.bottom;
+          if (!insideContent) desgloseModal.close();
+        });
+
+        desgloseModal.addEventListener("close", () => {
+          desgloseImg.src = "";
+          desgloseImg.alt = "";
+          desgloseLista.innerHTML = "";
         });
       }
     </script>
 
     <style>
-      dialog#foto-modal {
+      dialog#foto-modal,
+      dialog#desglose-modal {
         border: none;
       }
-      dialog#foto-modal::backdrop {
+      dialog#foto-modal::backdrop,
+      dialog#desglose-modal::backdrop {
         background: rgba(0, 0, 0, 0.85);
         backdrop-filter: blur(8px);
         -webkit-backdrop-filter: blur(8px);
+      }
+      dialog#desglose-modal {
+        animation: desgloseIn 0.25s ease-out;
+      }
+      @keyframes desgloseIn {
+        from {
+          opacity: 0;
+          transform: translateY(10px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0) scale(1);
+        }
       }
     </style>
 
@@ -510,7 +902,7 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                     <h3 class="text-2xl md:text-3xl font-black text-white italic mb-2 text-center break-words max-w-full">
                       {joven.nombre}
                     </h3>
-                    <div class={`text-4xl md:text-5xl font-black ${medal.text}`}>{joven.total}</div>
+                    <div class={`text-4xl md:text-5xl font-black ${medal.text}`}>{sumarPuntos(joven.puntos)}</div>
                     <div class="text-[10px] md:text-xs uppercase tracking-widest text-white/40 mt-1">puntos</div>
                   </div>
                 </div>
@@ -527,7 +919,15 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
           <div class="divide-y divide-white/5">
             {
               ranking.map((joven, idx) => (
-                <div class="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 hover:bg-white/[0.02] transition-colors">
+                <div
+                  class="flex items-center gap-3 md:gap-4 px-4 md:px-6 py-4 hover:bg-white/[0.03] transition-colors cursor-pointer focus:outline-none focus-visible:bg-white/[0.04]"
+                  role="button"
+                  tabindex="0"
+                  data-row-nombre={joven.nombre}
+                  data-row-src={urlsJovenesFull[joven.nombre] || ""}
+                  data-row-total={sumarPuntos(joven.puntos)}
+                  data-row-puntos={JSON.stringify(joven.puntos)}
+                >
                   <div
                     class={`w-12 h-12 md:w-14 md:h-14 rounded-xl flex items-center justify-center font-black text-sm md:text-base shrink-0 ${
                       idx === 0
@@ -541,9 +941,8 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                   >
                     {idx + 1}
                   </div>
-                  <button
-                    type="button"
-                    class={`shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full p-[2px] border-0 cursor-pointer disabled:cursor-default disabled:opacity-60 transition-transform hover:scale-110 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#101829] group ${
+                  <div
+                    class={`shrink-0 w-12 h-12 md:w-14 md:h-14 rounded-full p-[2px] border-0 group ${
                       idx < 3
                         ? "bg-gradient-to-br " +
                           (idx === 0
@@ -552,11 +951,7 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                               ? "from-slate-200 to-slate-400"
                               : "from-amber-600 to-amber-800")
                         : "bg-white/10"
-                    } ${fotosJovenes[joven.nombre] ? "" : "pointer-events-none"}`}
-                    data-foto-nombre={joven.nombre}
-                    data-foto-src={urlsJovenesFull[joven.nombre] || ""}
-                    aria-label={fotosJovenes[joven.nombre] ? `Ver foto de ${joven.nombre}` : joven.nombre}
-                    disabled={!fotosJovenes[joven.nombre]}
+                    }`}
                   >
                     <div class="w-full h-full rounded-full overflow-hidden bg-[#0c121e] flex items-center justify-center relative">
                       {fotosJovenes[joven.nombre] ? (
@@ -591,7 +986,7 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                         </span>
                       )}
                     </div>
-                  </button>
+                  </div>
                   <div class="flex-1 min-w-0">
                     <div class="text-white font-semibold italic truncate">{joven.nombre}</div>
                     <div class="flex flex-wrap gap-1.5 mt-1">
@@ -640,10 +1035,20 @@ ranking.sort((a, b) => b.total - a.total || a.nombre.localeCompare(b.nombre));
                   </div>
                   <div class="text-right shrink-0">
                     <div class={`text-xl md:text-2xl font-black ${idx < 3 ? "text-[#D4AF37]" : "text-white"}`}>
-                      {joven.total}
+                      {sumarPuntos(joven.puntos)}
                     </div>
                     <div class="text-[10px] uppercase tracking-widest text-white/40">puntos</div>
                   </div>
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    fill="none"
+                    viewBox="0 0 24 24"
+                    stroke-width="2"
+                    stroke="currentColor"
+                    class="w-4 h-4 md:w-5 md:h-5 text-white/30 group-hover:text-[#D4AF37] transition-colors shrink-0"
+                  >
+                    <path stroke-linecap="round" stroke-linejoin="round" d="M8.25 4.5l7.5 7.5-7.5 7.5" />
+                  </svg>
                 </div>
               ))
             }
