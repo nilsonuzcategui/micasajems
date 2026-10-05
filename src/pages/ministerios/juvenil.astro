@@ -70,233 +70,233 @@ for (const [nombre, img] of Object.entries(fotosJovenes)) {
   urlsJovenesFull[nombre] = src;
 }
 
-type Punto = { motivo: string; puntos: number };
-type RankingEntry = {
-  nombre: string;
-  asistencia: boolean;
-  participacion: boolean;
-  ganador: boolean;
-  puntos: Punto[];
-};
+type Punto = { motivo: string; puntos: number; fecha: string };
+type Joven = { nombre: string; puntos: Punto[] };
 
 const sumarPuntos = (puntos: Punto[]) => puntos.reduce((acc, p) => acc + p.puntos, 0);
 
-const ranking: RankingEntry[] = [
-  // domingo 13/09
+const flagsDePuntos = (puntos: Punto[]) => ({
+  asistencia: puntos.some((p) => /^Asistencia/i.test(p.motivo)),
+  participacion: puntos.some((p) => /^Participación/i.test(p.motivo)),
+  ganador: puntos.some((p) => /^Ganador/i.test(p.motivo) || /^Traer amigo/i.test(p.motivo)),
+});
+
+const ranking: Joven[] = [
+  // -------- Domingo 13 Sept. --------
   {
     nombre: "Alexander",
-    asistencia: true,
-    participacion: false,
-    ganador: false,
-    puntos: [{ motivo: "Asistencia", puntos: 10 }],
+    puntos: [{ motivo: "Asistencia", puntos: 10, fecha: "Domingo 13 Sept." }],
   },
   {
     nombre: "Angelo",
-    asistencia: true,
-    participacion: false,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia", puntos: 10 },
-      { motivo: "Asistencia Dominical", puntos: 10 },
+      { motivo: "Asistencia", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Dominical", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Sábado + Plus", puntos: 20, fecha: "Sábado 03 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Traer amigo", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Aranza",
-    asistencia: true,
-    participacion: true,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia", puntos: 30 },
-      { motivo: "Participación", puntos: 5 },
-      { motivo: "Culto de oración", puntos: 10 },
+      { motivo: "Asistencia", puntos: 30, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Culto de oración", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Cristian",
-    asistencia: false,
-    participacion: false,
-    ganador: false,
-    puntos: [{ motivo: "Asistencia Sábado", puntos: 10 }],
+    puntos: [{ motivo: "Asistencia Sábado", puntos: 10, fecha: "Domingo 13 Sept." }],
   },
   {
     nombre: "David",
-    asistencia: true,
-    participacion: true,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia Sábado", puntos: 10 },
-      { motivo: "Participación", puntos: 5 },
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Efranny",
-    asistencia: true,
-    participacion: false,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia Sábado", puntos: 10 },
-      { motivo: "Asistencia Doctrina", puntos: 10 },
-      { motivo: "Asistencia Domingo", puntos: 10 },
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Domingo", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Participación", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Enio",
-    asistencia: true,
-    participacion: false,
-    ganador: true,
     puntos: [
-      { motivo: "Asistencia", puntos: 20 },
-      { motivo: "Ganador", puntos: 25 },
+      { motivo: "Asistencia", puntos: 20, fecha: "Domingo 13 Sept." },
+      { motivo: "Ganador", puntos: 25, fecha: "Domingo 13 Sept." },
     ],
   },
   {
     nombre: "Erika",
-    asistencia: true,
-    participacion: true,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia Sábado", puntos: 10 },
-      { motivo: "Ganadora Reto", puntos: 25 },
-      { motivo: "Apoyo Mantenimiento", puntos: 10 },
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Ganadora Reto", puntos: 25, fecha: "Domingo 13 Sept." },
+      { motivo: "Apoyo Mantenimiento", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Franklin",
-    asistencia: true,
-    participacion: true,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia", puntos: 20 },
-      { motivo: "Participación", puntos: 5 },
+      { motivo: "Asistencia", puntos: 20, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Participación", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Jonas",
-    asistencia: true,
-    participacion: true,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia", puntos: 20 },
-      { motivo: "Participación", puntos: 5 },
+      { motivo: "Asistencia", puntos: 20, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Participación", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Jonathan",
-    asistencia: true,
-    participacion: true,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia", puntos: 20 },
-      { motivo: "Participación", puntos: 5 },
-      { motivo: "Culto de oración", puntos: 10 },
+      { motivo: "Asistencia", puntos: 20, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Culto de oración", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Kate",
-    asistencia: true,
-    participacion: true,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia", puntos: 20 },
-      { motivo: "Participación", puntos: 5 },
+      { motivo: "Asistencia", puntos: 20, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Nana",
-    asistencia: true,
-    participacion: false,
-    ganador: false,
-    puntos: [{ motivo: "Asistencia", puntos: 30 }],
+    puntos: [
+      { motivo: "Asistencia", puntos: 30, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+    ],
   },
   {
     nombre: "Naya",
-    asistencia: true,
-    participacion: false,
-    ganador: true,
     puntos: [
-      { motivo: "Asistencia", puntos: 30 },
-      { motivo: "Ganador", puntos: 25 },
+      { motivo: "Asistencia", puntos: 30, fecha: "Domingo 13 Sept." },
+      { motivo: "Ganador", puntos: 25, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Nicol",
-    asistencia: false,
-    participacion: false,
-    ganador: false,
-    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+    puntos: [
+      { motivo: "Asistencia Dominical", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+    ],
   },
   {
     nombre: "Mariannys",
-    asistencia: false,
-    participacion: false,
-    ganador: false,
-    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+    puntos: [{ motivo: "Asistencia Dominical", puntos: 10, fecha: "Domingo 13 Sept." }],
   },
   {
     nombre: "Reyber",
-    asistencia: true,
-    participacion: true,
-    ganador: true,
     puntos: [
-      { motivo: "Asistencia", puntos: 30 },
-      { motivo: "Participación", puntos: 5 },
-      { motivo: "Ganador", puntos: 25 },
-      { motivo: "Apoyo Mantenimiento", puntos: 10 },
+      { motivo: "Asistencia", puntos: 30, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Ganador", puntos: 25, fecha: "Domingo 13 Sept." },
+      { motivo: "Apoyo Mantenimiento", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Reynaldo",
-    asistencia: false,
-    participacion: false,
-    ganador: false,
-    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+    puntos: [
+      { motivo: "Asistencia Dominical", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+    ],
   },
   {
     nombre: "Richelis",
-    asistencia: true,
-    participacion: true,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia", puntos: 20 },
-      { motivo: "Participación", puntos: 5 },
-      { motivo: "Culto de oración", puntos: 10 },
+      { motivo: "Asistencia", puntos: 20, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Culto de oración", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Samuel",
-    asistencia: false,
-    participacion: false,
-    ganador: false,
-    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+    puntos: [
+      { motivo: "Asistencia Dominical", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
+    ],
   },
   {
     nombre: "Sariel",
-    asistencia: true,
-    participacion: true,
-    ganador: true,
     puntos: [
-      { motivo: "Asistencia", puntos: 30 },
-      { motivo: "Participación", puntos: 5 },
-      { motivo: "Ganador", puntos: 25 },
-      { motivo: "Culto de oración", puntos: 10 },
+      { motivo: "Asistencia", puntos: 30, fecha: "Domingo 13 Sept." },
+      { motivo: "Participación", puntos: 5, fecha: "Domingo 13 Sept." },
+      { motivo: "Ganador", puntos: 25, fecha: "Domingo 13 Sept." },
+      { motivo: "Culto de oración", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
   },
   {
     nombre: "Victoria",
-    asistencia: false,
-    participacion: false,
-    ganador: false,
-    puntos: [{ motivo: "Asistencia Dominical", puntos: 10 }],
+    puntos: [
+      { motivo: "Asistencia Dominical", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Participación", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+    ],
   },
   {
     nombre: "Ysmael",
-    asistencia: false,
-    participacion: false,
-    ganador: false,
     puntos: [
-      { motivo: "Asistencia Dominical", puntos: 10 },
-      { motivo: "Apoyo Mantenimiento", puntos: 10 },
+      { motivo: "Asistencia Dominical", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Apoyo Mantenimiento", puntos: 10, fecha: "Domingo 13 Sept." },
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Participación", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
     ],
+  },
+  // -------- Nuevos --------
+  {
+    nombre: "Jesús Antequera",
+    puntos: [
+      { motivo: "Asistencia Sábado", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Participación", puntos: 10, fecha: "Sábado 03 Oct." },
+      { motivo: "Asistencia Doctrina", puntos: 10, fecha: "Domingo 04 Oct." },
+      { motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." },
+    ],
+  },
+  {
+    nombre: "Ali",
+    puntos: [{ motivo: "Asistencia Servicio", puntos: 10, fecha: "Domingo 04 Oct." }],
   },
 ];
 
@@ -328,6 +328,30 @@ ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre
           Una generación que no se avergüenza del Evangelio. Formando líderes con identidad, propósito y fuego en el
           corazón.
         </p>
+        <a
+          href="#ranking-puntos"
+          class="group mt-10 inline-flex items-center gap-3 px-6 md:px-8 py-3 md:py-4 rounded-full bg-gradient-to-r from-[#D4AF37] to-amber-200 text-[#0c121e] font-black uppercase tracking-[0.2em] text-xs md:text-sm shadow-[0_0_40px_-10px_rgba(212,175,55,0.6)] hover:shadow-[0_0_60px_-10px_rgba(212,175,55,0.9)] hover:scale-105 transition-all duration-300 focus:outline-none focus-visible:ring-2 focus-visible:ring-[#D4AF37] focus-visible:ring-offset-2 focus-visible:ring-offset-[#0c121e]"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            viewBox="0 0 24 24"
+            fill="currentColor"
+            class="w-4 h-4 md:w-5 md:h-5"
+          >
+            <path d="M11.48 3.499a.562.562 0 011.04 0l2.125 5.111a.563.563 0 00.475.345l5.518.442c.499.04.701.663.321.988l-4.204 3.602a.563.563 0 00-.182.557l1.285 5.385a.562.562 0 01-.84.61l-4.725-2.885a.563.563 0 00-.586 0L6.982 20.54a.562.562 0 01-.84-.61l1.285-5.386a.562.563 0 00-.182-.557l-4.204-3.602a.563.563 0 01.321-.988l5.518-.442a.563.563 0 00.475-.345L11.48 3.5z" />
+          </svg>
+          <span>Ver Ranking de Puntos</span>
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke-width="2.5"
+            stroke="currentColor"
+            class="w-4 h-4 md:w-5 md:h-5 transition-transform group-hover:translate-y-0.5"
+          >
+            <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 8.25l-7.5 7.5-7.5-7.5" />
+          </svg>
+        </a>
       </div>
     </div>
   </section>
@@ -510,16 +534,92 @@ ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre
       const desgloseLista = document.getElementById("desglose-modal-lista") as HTMLElement | null;
       const desgloseClose = document.getElementById("desglose-modal-close");
 
-      const motivoColor: Record<string, { text: string; bg: string; dot: string; label: string }> = {
-        Asistencia: { text: "text-[#D4AF37]", bg: "bg-[#D4AF37]/10", dot: "bg-[#D4AF37]", label: "Asistencia" },
-        Participación: {
+      const motivoColor: Array<{
+        match: RegExp;
+        text: string;
+        bg: string;
+        dot: string;
+        label: string;
+      }> = [
+        {
+          match: /^Asistencia Doctrina/i,
+          text: "text-blue-300",
+          bg: "bg-blue-400/10",
+          dot: "bg-blue-400",
+          label: "Asistencia Doctrina",
+        },
+        {
+          match: /^Asistencia Servicio/i,
+          text: "text-emerald-300",
+          bg: "bg-emerald-400/10",
+          dot: "bg-emerald-400",
+          label: "Asistencia Servicio",
+        },
+        {
+          match: /^Asistencia Sábado/i,
+          text: "text-orange-300",
+          bg: "bg-orange-400/10",
+          dot: "bg-orange-400",
+          label: "Asistencia Sábado",
+        },
+        {
+          match: /^Asistencia Dominical/i,
+          text: "text-amber-300",
+          bg: "bg-amber-400/10",
+          dot: "bg-amber-400",
+          label: "Asistencia Dominical",
+        },
+        {
+          match: /^Asistencia Domingo/i,
+          text: "text-amber-300",
+          bg: "bg-amber-400/10",
+          dot: "bg-amber-400",
+          label: "Asistencia Domingo",
+        },
+        {
+          match: /^Asistencia/i,
+          text: "text-[#D4AF37]",
+          bg: "bg-[#D4AF37]/10",
+          dot: "bg-[#D4AF37]",
+          label: "Asistencia",
+        },
+        {
+          match: /^Participación/i,
           text: "text-purple-300",
           bg: "bg-purple-400/10",
           dot: "bg-purple-400",
           label: "Participación",
         },
-        Ganador: { text: "text-amber-200", bg: "bg-amber-400/15", dot: "bg-amber-400", label: "Ganador" },
-        Constancia: { text: "text-slate-300", bg: "bg-white/5", dot: "bg-slate-400", label: "Constancia" },
+        { match: /^Ganador/i, text: "text-amber-200", bg: "bg-amber-400/15", dot: "bg-amber-400", label: "Ganador" },
+        {
+          match: /^Traer amigo/i,
+          text: "text-pink-300",
+          bg: "bg-pink-400/15",
+          dot: "bg-pink-400",
+          label: "Traer amigo",
+        },
+        {
+          match: /^Culto de oración/i,
+          text: "text-cyan-300",
+          bg: "bg-cyan-400/10",
+          dot: "bg-cyan-400",
+          label: "Culto de oración",
+        },
+        {
+          match: /^Apoyo Mantenimiento/i,
+          text: "text-teal-300",
+          bg: "bg-teal-400/10",
+          dot: "bg-teal-400",
+          label: "Apoyo Mantenimiento",
+        },
+        { match: /^Constancia/i, text: "text-slate-300", bg: "bg-white/5", dot: "bg-slate-400", label: "Constancia" },
+      ];
+
+      const colorDeMotivo = (motivo: string) => {
+        for (const cfg of motivoColor) {
+          if (cfg.match.test(motivo)) return cfg;
+        }
+        return { text: "text-white", bg: "bg-white/5", dot: "bg-white/40", label: motivo };
       };
 
       const iniciales = (nombre: string) =>
@@ -535,7 +635,7 @@ ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre
           const src = row.dataset.rowSrc || "";
           const total = row.dataset.rowTotal || "0";
           const puntosJson = row.dataset.rowPuntos || "[]";
-          let puntos: { motivo: string; puntos: number }[] = [];
+          let puntos: { motivo: string; puntos: number; fecha: string }[] = [];
           try {
             puntos = JSON.parse(puntosJson);
           } catch {
@@ -565,19 +665,17 @@ ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre
             .slice()
             .reverse()
             .forEach((p) => {
-              const cfg = motivoColor[p.motivo] || {
-                text: "text-white",
-                bg: "bg-white/5",
-                dot: "bg-white/40",
-                label: p.motivo,
-              };
+              const cfg = colorDeMotivo(p.motivo);
               const li = document.createElement("li");
               li.className = "flex items-center gap-3 py-2.5";
               li.innerHTML = `
               <span class="shrink-0 w-9 h-9 rounded-lg ${cfg.bg} flex items-center justify-center">
                 <span class="w-2 h-2 rounded-full ${cfg.dot}"></span>
               </span>
-              <span class="flex-1 text-white text-sm md:text-base">${cfg.label}</span>
+              <div class="flex-1 min-w-0">
+                <div class="text-white text-sm md:text-base truncate">${cfg.label}</div>
+                <div class="text-white/40 text-[11px] md:text-xs">${p.fecha || ""}</div>
+              </div>
               <span class="${cfg.text} font-black text-base md:text-lg tabular-nums">+${p.puntos}</span>
             `;
               desgloseLista.appendChild(li);
@@ -753,7 +851,7 @@ ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre
       </div>
     </section>
 
-    <section class="py-24 bg-[#0c121e] relative overflow-hidden">
+    <section id="ranking-puntos" class="py-24 bg-[#0c121e] relative overflow-hidden scroll-mt-24">
       <div
         class="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-[#D4AF37]/5 rounded-full blur-[140px]"
       >
@@ -990,7 +1088,7 @@ ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre
                   <div class="flex-1 min-w-0">
                     <div class="text-white font-semibold italic truncate">{joven.nombre}</div>
                     <div class="flex flex-wrap gap-1.5 mt-1">
-                      {joven.asistencia && (
+                      {flagsDePuntos(joven.puntos).asistencia && (
                         <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-[#D4AF37] bg-[#D4AF37]/10 px-2 py-0.5 rounded-full">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -1005,7 +1103,7 @@ ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre
                           <span class="hidden sm:inline">Asistencia</span>
                         </span>
                       )}
-                      {joven.participacion && (
+                      {flagsDePuntos(joven.puntos).participacion && (
                         <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-purple-300 bg-purple-400/10 px-2 py-0.5 rounded-full">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
@@ -1018,7 +1116,7 @@ ranking.sort((a, b) => sumarPuntos(b.puntos) - sumarPuntos(a.puntos) || a.nombre
                           <span class="hidden sm:inline">Participación</span>
                         </span>
                       )}
-                      {joven.ganador && (
+                      {flagsDePuntos(joven.puntos).ganador && (
                         <span class="inline-flex items-center gap-1 text-[10px] uppercase tracking-wider text-amber-200 bg-amber-400/15 border border-amber-400/30 px-2 py-0.5 rounded-full">
                           <svg
                             xmlns="http://www.w3.org/2000/svg"
